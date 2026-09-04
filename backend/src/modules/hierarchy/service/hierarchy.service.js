@@ -150,6 +150,18 @@ export class HierarchyService {
       }
     }
 
+    // Protection: Prevent root Super Admin or current user from blocking/deactivating themselves
+    const isRootOrSuperAdmin = child.userType === SYSTEM_USER_TYPES.SUPER_ADMIN || !child.parentUser;
+    const isEditingSelf = childId.toString() === requestingUser._id.toString();
+
+    if ((isRootOrSuperAdmin || isEditingSelf) && updateData.status && updateData.status !== ACCOUNT_STATUS.ACTIVE) {
+      throw ApiError.badRequest(
+        isRootOrSuperAdmin
+          ? 'The Root Super Admin account is system-protected and cannot be deactivated or blocked.'
+          : 'You cannot block or deactivate your own logged-in account.'
+      );
+    }
+
     // Handle email update uniqueness if email is changed
     if (updateData.email && updateData.email !== child.email) {
       const existingEmail = await User.findOne({
@@ -173,6 +185,7 @@ export class HierarchyService {
     await child.save();
     return child;
   }
+
 
   async deleteChildUser(childId, requestingUser) {
     const child = await User.findById(childId);

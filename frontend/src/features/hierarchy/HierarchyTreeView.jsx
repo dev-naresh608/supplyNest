@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   useGetHierarchyTreeQuery,
   useGetDownlineQuery,
@@ -21,6 +22,7 @@ import {
 import toast from 'react-hot-toast';
 
 export const HierarchyTreeView = () => {
+  const { user: currentUser } = useSelector((state) => state.auth);
   const { data: treeData = [], isLoading: isTreeLoading } = useGetHierarchyTreeQuery();
   const { data: downlineList = [], isLoading: isDownlineLoading } = useGetDownlineQuery();
   const [createChildApi, { isLoading: isCreating }] = useCreateChildUserMutation();
@@ -49,6 +51,7 @@ export const HierarchyTreeView = () => {
 
   const [editForm, setEditForm] = useState({
     id: '',
+    level: 0,
     firstName: '',
     lastName: '',
     phone: '',
@@ -56,6 +59,7 @@ export const HierarchyTreeView = () => {
     city: '',
     status: 'ACTIVE',
   });
+
 
   const [transferParentId, setTransferParentId] = useState('');
 
@@ -78,6 +82,8 @@ export const HierarchyTreeView = () => {
   const handleOpenEdit = (item) => {
     setEditForm({
       id: item._id || item.id,
+      level: item.level !== undefined ? item.level : item.hierarchyLevel,
+      userType: item.userType,
       firstName: item.firstName || item.name?.split(' ')[0] || '',
       lastName: item.lastName || item.name?.split(' ').slice(1).join(' ') || '',
       phone: item.phone || '',
@@ -87,6 +93,7 @@ export const HierarchyTreeView = () => {
     });
     setShowEditModal(true);
   };
+
 
   const handleUpdateChild = async (e) => {
     e.preventDefault();
@@ -399,16 +406,27 @@ export const HierarchyTreeView = () => {
 
               <div>
                 <label className="text-slate-700 font-semibold block mb-1">Account Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                  <option value="BLOCKED">BLOCKED</option>
-                </select>
+                {editForm.id === currentUser?._id || editForm.level === 0 || editForm.userType === 'SUPER_ADMIN' ? (
+                  <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-medium text-xs flex items-center justify-between">
+                    <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                      ACTIVE (Protected)
+                    </span>
+                    <span className="text-[10px] text-slate-400">Root / Own account cannot be blocked</span>
+                  </div>
+                ) : (
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                    <option value="BLOCKED">BLOCKED</option>
+                  </select>
+                )}
               </div>
+
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
