@@ -90,10 +90,28 @@ export class HierarchyService {
     const newParent = await User.findById(newParentId);
     if (!newParent || newParent.isDeleted) throw ApiError.notFound('New parent user not found');
 
+    // Hierarchy boundary security check for non-SuperAdmin
+    if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const isChildInDownline =
+        child.parentUser?.toString() === requestingUser._id.toString() ||
+        (child.ancestorPath && child.ancestorPath.includes(requestingUser._id.toString()));
+
+      const isNewParentInDownline =
+        newParent._id.toString() === requestingUser._id.toString() ||
+        (newParent.ancestorPath && newParent.ancestorPath.includes(requestingUser._id.toString()));
+
+      if (!isChildInDownline || !isNewParentInDownline) {
+        throw ApiError.forbidden('You can only transfer business nodes within your own downline hierarchy');
+      }
+    }
+
     // Prevent transferring root or moving to own descendant
     if (!child.parentUser) throw ApiError.badRequest('Root user cannot be transferred');
-    if (newParent.ancestorPath.includes(child._id.toString())) {
+    if (newParent.ancestorPath && newParent.ancestorPath.includes(child._id.toString())) {
       throw ApiError.badRequest('Cannot transfer a user to one of their own descendants');
+    }
+    if (newParent._id.toString() === child._id.toString()) {
+      throw ApiError.badRequest('Cannot transfer a user to itself');
     }
 
     const oldPrefix = `${child.ancestorPath}/${child._id}`;
@@ -118,7 +136,18 @@ export class HierarchyService {
 
   async deleteChildUser(childId, requestingUser) {
     const child = await User.findById(childId);
-    if (!child) throw ApiError.notFound('User not found');
+    if (!child || child.isDeleted) throw ApiError.notFound('User not found');
+
+    // Hierarchy boundary security check for non-SuperAdmin
+    if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const isChildInDownline =
+        child.parentUser?.toString() === requestingUser._id.toString() ||
+        (child.ancestorPath && child.ancestorPath.includes(requestingUser._id.toString()));
+
+      if (!isChildInDownline) {
+        throw ApiError.forbidden('You can only delete business nodes within your own downline hierarchy');
+      }
+    }
 
     const childrenCount = await this.hierarchyRepo.countChildren(childId);
     if (childrenCount > 0) {
@@ -132,3 +161,4 @@ export class HierarchyService {
     return true;
   }
 }
+

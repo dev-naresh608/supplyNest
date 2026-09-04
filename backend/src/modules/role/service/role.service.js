@@ -25,14 +25,16 @@ export class RoleService {
   }
 
   async getBusinessRoles(currentUser, options) {
-    return await this.roleRepo.findByBusiness(currentUser._id, options);
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
+    return await this.roleRepo.findByBusiness(businessId, options);
   }
 
   async getRoleById(roleId, currentUser) {
     const role = await this.roleRepo.findById(roleId);
     if (!role) throw ApiError.notFound('Role not found');
 
-    if (role.parentBusiness.toString() !== currentUser._id.toString() && currentUser.userType !== 'SUPER_ADMIN') {
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
+    if (role.parentBusiness.toString() !== businessId.toString() && currentUser.userType !== 'SUPER_ADMIN') {
       throw ApiError.forbidden('Access denied to role from another branch');
     }
     return role;
@@ -68,6 +70,11 @@ export class RoleService {
     const staff = await User.findById(staffUserId);
     if (!staff || staff.isDeleted) throw ApiError.notFound('Staff user not found');
 
+    // Ensure target user is a STAFF member
+    if (staff.userType !== 'STAFF') {
+      throw ApiError.badRequest('Roles can only be assigned to STAFF user accounts');
+    }
+
     // Ensure staff belongs to current business downline
     if (staff.parentUser.toString() !== currentUser._id.toString() && currentUser.userType !== 'SUPER_ADMIN') {
       throw ApiError.forbidden('You can only assign roles to staff in your branch');
@@ -81,6 +88,8 @@ export class RoleService {
   }
 
   async getRoleStats(currentUser) {
-    return await this.roleRepo.getRoleStats(currentUser._id);
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
+    return await this.roleRepo.getRoleStats(businessId);
   }
 }
+

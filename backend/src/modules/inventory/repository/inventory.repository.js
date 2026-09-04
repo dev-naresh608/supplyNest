@@ -33,8 +33,15 @@ export class InventoryRepository {
 
   async upsertStock(ownerId, productId, deltaAvailable, deltaReserved = 0, deltaDamaged = 0, session = null) {
     const opts = session ? { session, new: true, upsert: true } : { new: true, upsert: true };
-    return await Inventory.findOneAndUpdate(
-      { ownerId, productId },
+    const query = { ownerId, productId };
+
+    if (deltaAvailable < 0) {
+      query.availableQty = { $gte: Math.abs(deltaAvailable) };
+      opts.upsert = false;
+    }
+
+    const updated = await Inventory.findOneAndUpdate(
+      query,
       {
         $inc: {
           availableQty: deltaAvailable,
@@ -44,7 +51,14 @@ export class InventoryRepository {
       },
       opts
     );
+
+    if (!updated && deltaAvailable < 0) {
+      throw new Error('Insufficient stock available for atomic operation');
+    }
+
+    return updated;
   }
+
 
   async createTransaction(transactionData, session = null) {
     const opts = session ? { session } : {};

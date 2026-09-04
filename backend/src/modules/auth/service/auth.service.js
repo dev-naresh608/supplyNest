@@ -11,7 +11,7 @@ export class AuthService {
 
   async login(email, password, reqInfo) {
     const agent = useragent.parse(reqInfo.userAgentHeader);
-    const deviceName = agent.device.toString() !== 'Other 0.0.0' ? agent.device.toString() : 'Desktop';
+    const deviceName = agent.device.toString() !== 'Other 0.0.0' ? agent.device.toString() : 'Desktop Browser';
     const browser = `${agent.toAgent()} on ${agent.os.toString()}`;
     const ipAddress = reqInfo.ip;
 
@@ -70,27 +70,31 @@ export class AuthService {
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate JWTs
+    // Create session record first to obtain sessionId
+    const session = await this.authRepo.createSession({
+      userId: user._id,
+      refreshToken: 'temp_token',
+      deviceName,
+      browser,
+      os: agent.os.toString(),
+      ipAddress,
+    });
+
+    // Generate JWTs with sessionId in payload
     const payload = {
       id: user._id,
       email: user.email,
       userType: user.userType,
       ancestorPath: user.ancestorPath,
       hierarchyLevel: user.hierarchyLevel,
+      sessionId: session._id,
     };
 
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
-    // Save session
-    await this.authRepo.createSession({
-      userId: user._id,
-      refreshToken,
-      deviceName,
-      browser,
-      os: agent.os.toString(),
-      ipAddress,
-    });
+    session.refreshToken = refreshToken;
+    await session.save();
 
     await this.authRepo.logLoginAttempt({
       userId: user._id,
@@ -105,7 +109,7 @@ export class AuthService {
     const userObj = user.toObject();
     delete userObj.password;
 
-    return { user: userObj, accessToken, refreshToken };
+    return { user: userObj, accessToken, refreshToken, sessionId: session._id };
   }
 
   async refreshToken(token) {
@@ -119,7 +123,9 @@ export class AuthService {
     }
 
     const session = await this.authRepo.findSessionByToken(token);
-    if (!session) throw ApiError.unauthorized('Session has been revoked or expired');
+    if (!session || session.isRevoked) {
+      throw ApiError.unauthorized('Session has been revoked or expired');
+    }
 
     const user = await this.authRepo.findById(decoded.id);
     if (!user || user.status !== ACCOUNT_STATUS.ACTIVE) {
@@ -132,6 +138,7 @@ export class AuthService {
       userType: user.userType,
       ancestorPath: user.ancestorPath,
       hierarchyLevel: user.hierarchyLevel,
+      sessionId: session._id,
     };
 
     const newAccessToken = generateAccessToken(payload);
@@ -144,8 +151,10 @@ export class AuthService {
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
-  async logout(userId, refreshToken) {
-    if (refreshToken) {
+  async logout(userId, refreshToken, sessionId = null) {
+    if (sessionId) {
+      await this.authRepo.revokeSession(sessionId, userId);
+    } else if (refreshToken) {
       const session = await this.authRepo.findSessionByToken(refreshToken);
       if (session) {
         session.isRevoked = true;
@@ -156,6 +165,12 @@ export class AuthService {
 
   async logoutAll(userId) {
     await this.authRepo.revokeAllUserSessions(userId);
+  }
+
+  async revokeSession(sessionId, userId) {
+    const session = await this.authRepo.revokeSession(sessionId, userId);
+    if (!session) throw ApiError.notFound('Session not found or already revoked');
+    return true;
   }
 
   async getProfile(userId) {
@@ -179,3 +194,4 @@ export class AuthService {
     return await this.authRepo.getUserSessions(userId);
   }
 }
+

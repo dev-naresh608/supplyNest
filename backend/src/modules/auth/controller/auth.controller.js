@@ -42,11 +42,11 @@ export class AuthController {
 
   logout = async (req, res, next) => {
     try {
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-      await this.authService.logout(req.user._id, refreshToken);
+      const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+      await this.authService.logout(req.user._id, refreshToken, req.sessionId);
 
-      res.clearCookie('refreshToken');
-      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken', getCookieOptions());
+      res.clearCookie('accessToken', getCookieOptions());
 
       return ApiResponse.success(res, 'Logout successful');
     } catch (error) {
@@ -58,10 +58,20 @@ export class AuthController {
     try {
       await this.authService.logoutAll(req.user._id);
 
-      res.clearCookie('refreshToken');
-      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken', getCookieOptions());
+      res.clearCookie('accessToken', getCookieOptions());
 
       return ApiResponse.success(res, 'Logged out from all devices successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  revokeSession = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await this.authService.revokeSession(id, req.user._id);
+      return ApiResponse.success(res, 'Session revoked successfully');
     } catch (error) {
       next(error);
     }
@@ -94,3 +104,4 @@ export class AuthController {
     }
   };
 }
+

@@ -14,4 +14,6 @@ const sessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+sessionSchema.index({ userId: 1, isRevoked: 1 });
+
 export const Session = mongoose.model('Session', sessionSchema);

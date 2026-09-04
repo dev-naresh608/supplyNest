@@ -1,6 +1,7 @@
 import { ApiError } from '../utils/ApiError.js';
 import { verifyAccessToken } from '../utils/TokenUtils.js';
 import { User } from '../modules/auth/model/User.js';
+import { Session } from '../modules/auth/model/Session.js';
 import { ACCOUNT_STATUS } from '../constants/userRoles.js';
 
 export const protect = async (req, res, next) => {
@@ -17,6 +18,28 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = verifyAccessToken(token);
+
+    // Verify database-backed active session
+    if (decoded.sessionId) {
+      const session = await Session.findOne({
+        _id: decoded.sessionId,
+        userId: decoded.id,
+        isRevoked: false,
+      });
+
+      if (!session) {
+        throw ApiError.unauthorized('Session has expired or was revoked. Please log in again.');
+      }
+
+      // Throttle updating lastActive to once every 60 seconds
+      if (Date.now() - new Date(session.lastActive).getTime() > 60000) {
+        session.lastActive = new Date();
+        await session.save();
+      }
+
+      req.sessionId = session._id;
+    }
+
     const user = await User.findById(decoded.id).populate('role').exec();
 
     if (!user || user.isDeleted) {
@@ -42,3 +65,4 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+

@@ -1,12 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { api } from '../../config/axios';
-import { ShieldCheck, Plus, Copy, UserCheck, Edit3 } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  useGetRolesQuery,
+  useGetRoleStatsQuery,
+  useCreateRoleMutation,
+  useCloneRoleMutation,
+  useAssignRoleMutation,
+} from '../../store/api/rolesApi';
+import { Plus, Copy, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const RolesView = () => {
-  const [roles, setRoles] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: roles = [], isLoading: isRolesLoading } = useGetRolesQuery();
+  const { data: stats } = useGetRoleStatsQuery();
+  const [createRoleApi, { isLoading: isCreating }] = useCreateRoleMutation();
+  const [cloneRoleApi] = useCloneRoleMutation();
+  const [assignRoleApi] = useAssignRoleMutation();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
@@ -23,22 +31,6 @@ export const RolesView = () => {
     return initial;
   });
 
-  const loadRoles = async () => {
-    try {
-      const [rolesRes, statsRes] = await Promise.all([api.get('/roles'), api.get('/roles/stats')]);
-      setRoles(rolesRes.data || []);
-      setStats(statsRes.data);
-    } catch (err) {
-      toast.error('Failed to load dynamic business roles');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadRoles();
-  }, []);
-
   const handleTogglePermission = (module, action) => {
     setPermissions((prev) => ({
       ...prev,
@@ -52,18 +44,17 @@ export const RolesView = () => {
   const handleCreateRole = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/roles', {
+      await createRoleApi({
         roleName: newRoleName,
         description,
         permissions,
-      });
+      }).unwrap();
       toast.success('Dynamic role created successfully');
       setShowCreateModal(false);
       setNewRoleName('');
       setDescription('');
-      loadRoles();
     } catch (err) {
-      toast.error(err.message || 'Failed to create role');
+      toast.error(err?.data?.message || err?.message || 'Failed to create role');
     }
   };
 
@@ -72,25 +63,25 @@ export const RolesView = () => {
     if (!clonedName) return;
 
     try {
-      await api.post(`/roles/${roleId}/clone`, { newRoleName: clonedName });
+      await cloneRoleApi({ id: roleId, newRoleName: clonedName }).unwrap();
       toast.success('Role cloned successfully');
-      loadRoles();
     } catch (err) {
-      toast.error(err.message || 'Clone failed');
+      toast.error(err?.data?.message || err?.message || 'Clone failed');
     }
   };
 
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white font-['Outfit']">Dynamic Business Roles</h2>
-          <p className="text-xs text-slate-400">Scoped branch roles with fine-grained modular permission matrices</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-['Outfit']">Dynamic Business Roles</h2>
+          <p className="text-xs text-slate-500 font-medium">Scoped branch roles with fine-grained modular permission matrices</p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
         >
           <Plus className="w-4 h-4" />
           Create Branch Role
@@ -98,85 +89,102 @@ export const RolesView = () => {
       </div>
 
       {/* Role Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {roles.map((role) => (
-          <div key={role._id} className="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-slate-100">{role.roleName}</h3>
-                <p className="text-xs text-slate-400 mt-0.5">{role.description || 'Custom Branch Role'}</p>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px]">
-                {role.status}
-              </span>
-            </div>
-
-            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-              <span>Assigned Staff: {role.assignedUsersCount ?? 0}</span>
-              <button
-                onClick={() => handleCloneRole(role._id, role.roleName)}
-                className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 cursor-pointer"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                Clone
-              </button>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {roles.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
+            No dynamic roles configured.
           </div>
-        ))}
+        ) : (
+          roles.map((role) => (
+            <div key={role._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{role.roleName}</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-1">{role.description || 'Custom Branch Role'}</p>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[10px] font-semibold">
+                  {role.status}
+                </span>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Assigned Staff: <strong className="text-slate-800 font-semibold">{role.assignedUsersCount ?? 0}</strong></span>
+                <button
+                  onClick={() => handleCloneRole(role._id, role.roleName)}
+                  className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Clone
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Create Role Modal with Permission Matrix */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-panel p-6 rounded-3xl w-full max-w-3xl max-h-[85vh] overflow-y-auto border border-slate-800 space-y-6">
-            <h3 className="text-xl font-bold text-white font-['Outfit']">Create Dynamic Branch Role</h3>
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl space-y-6 my-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 font-['Outfit']">Create Dynamic Branch Role</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Configure access policies and module capabilities</p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             <form onSubmit={handleCreateRole} className="space-y-5 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-slate-300 font-medium">Role Name</label>
+                  <label className="text-slate-700 font-semibold block mb-1">Role Name</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Warehouse Head, Senior Sales"
                     value={newRoleName}
                     onChange={(e) => setNewRoleName(e.target.value)}
-                    className="w-full mt-1.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 font-medium">Description</label>
+                  <label className="text-slate-700 font-semibold block mb-1">Description</label>
                   <input
                     type="text"
                     placeholder="Brief scope of responsibilities"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full mt-1.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
                   />
                 </div>
               </div>
 
               {/* Matrix Table */}
               <div>
-                <h4 className="text-sm font-semibold text-slate-200 mb-3">Module Permission Matrix</h4>
-                <div className="overflow-x-auto rounded-xl border border-slate-800">
-                  <table className="w-full text-left text-xs text-slate-300">
-                    <thead className="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                <h4 className="text-sm font-bold text-slate-900 mb-3">Module Permission Matrix</h4>
+                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                  <table className="w-full text-left text-xs text-slate-700">
+                    <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
                       <tr>
-                        <th className="p-3">Module</th>
+                        <th className="p-3.5">Module</th>
                         {ACTIONS.map((act) => (
-                          <th key={act} className="p-3 text-center uppercase">
+                          <th key={act} className="p-3.5 text-center uppercase">
                             {act}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/80">
+                    <tbody className="divide-y divide-slate-100">
                       {MODULES.map((mod) => (
-                        <tr key={mod} className="hover:bg-slate-900/40">
-                          <td className="p-3 font-bold uppercase text-slate-200">{mod}</td>
+                        <tr key={mod} className="hover:bg-slate-50/60 transition">
+                          <td className="p-3.5 font-bold uppercase text-slate-900">{mod}</td>
                           {ACTIONS.map((act) => (
-                            <td key={act} className="p-3 text-center">
+                            <td key={act} className="p-3.5 text-center">
                               <input
                                 type="checkbox"
                                 checked={permissions[mod]?.[act] || false}
@@ -192,15 +200,15 @@ export const RolesView = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold">
+                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
                   Save Role Matrix
                 </button>
               </div>

@@ -13,5 +13,7 @@ router.post('/logout-all', protect, controller.logoutAll);
 router.get('/profile', protect, controller.getProfile);
 router.put('/profile', protect, validate(updateProfileSchema), controller.updateProfile);
 router.get('/sessions', protect, controller.getSessions);
+router.delete('/sessions/:id', protect, controller.revokeSession);
 
 export default router;
+

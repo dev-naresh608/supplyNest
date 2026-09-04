@@ -1,4 +1,5 @@
 import { User } from '../../auth/model/User.js';
+import { escapeRegex } from '../../../utils/helpers.js';
 
 export class HierarchyRepository {
   async findDirectChildren(parentId, options = {}) {
@@ -21,11 +22,12 @@ export class HierarchyRepository {
     };
 
     if (options.status) query.status = options.status;
-    if (options.search) {
+    if (options.search && typeof options.search === 'string' && options.search.trim()) {
+      const sanitized = escapeRegex(options.search.trim());
       query.$or = [
-        { firstName: { $regex: options.search, $options: 'i' } },
-        { lastName: { $regex: options.search, $options: 'i' } },
-        { email: { $regex: options.search, $options: 'i' } },
+        { firstName: { $regex: sanitized, $options: 'i' } },
+        { lastName: { $regex: sanitized, $options: 'i' } },
+        { email: { $regex: sanitized, $options: 'i' } },
       ];
     }
 
@@ -34,6 +36,7 @@ export class HierarchyRepository {
       .sort(options.sort || { createdAt: -1 })
       .exec();
   }
+
 
   async countChildren(parentId) {
     return await User.countDocuments({ parentUser: parentId, isDeleted: false });

@@ -2,6 +2,8 @@ import { ProductRepository } from '../repository/product.repository.js';
 import { InventoryRepository } from '../../inventory/repository/inventory.repository.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { SYSTEM_USER_TYPES } from '../../../constants/userRoles.js';
+import { Product } from '../model/Product.js';
+import { escapeRegex } from '../../../utils/helpers.js';
 
 export class ProductService {
   constructor() {
@@ -14,13 +16,15 @@ export class ProductService {
       throw ApiError.forbidden('Only Super Admin can create master products');
     }
 
-    const existingSku = await this.productRepo.findProducts({ sku: productData.sku });
-    if (existingSku.items.length > 0) {
-      throw ApiError.conflict(`Product with SKU "${productData.sku}" already exists`);
+    const normalizedSku = productData.sku.trim().toUpperCase();
+    const existingSku = await Product.findOne({ sku: normalizedSku, isDeleted: false });
+    if (existingSku) {
+      throw ApiError.conflict(`Product with SKU "${normalizedSku}" already exists`);
     }
 
     const product = await this.productRepo.createProduct({
       ...productData,
+      sku: normalizedSku,
       createdBy: currentUser._id,
     });
 
@@ -43,10 +47,11 @@ export class ProductService {
 
   async getProducts(currentUser, queryParams) {
     const filter = {};
-    if (queryParams.search) {
+    if (queryParams.search && typeof queryParams.search === 'string' && queryParams.search.trim()) {
+      const sanitized = escapeRegex(queryParams.search.trim());
       filter.$or = [
-        { productName: { $regex: queryParams.search, $options: 'i' } },
-        { sku: { $regex: queryParams.search, $options: 'i' } },
+        { productName: { $regex: sanitized, $options: 'i' } },
+        { sku: { $regex: sanitized, $options: 'i' } },
       ];
     }
     if (queryParams.category) filter.category = queryParams.category;
@@ -55,6 +60,7 @@ export class ProductService {
 
     return await this.productRepo.findProducts(filter, queryParams);
   }
+
 
   async getProductById(productId) {
     const product = await this.productRepo.findById(productId);
