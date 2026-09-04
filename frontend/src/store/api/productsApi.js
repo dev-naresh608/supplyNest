@@ -37,6 +37,15 @@ export const productsApi = apiSlice.injectEndpoints({
       transformResponse: (response) => response?.data || null,
     }),
 
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `/products/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Products', 'Inventory'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
     getCategories: builder.query({
       query: () => '/products/categories',
       providesTags: ['Categories'],
@@ -48,6 +57,25 @@ export const productsApi = apiSlice.injectEndpoints({
         url: '/products/categories',
         method: 'POST',
         body: catData,
+      }),
+      invalidatesTags: ['Categories'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
+    updateCategory: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/products/categories/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Categories', 'Products'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
+    deleteCategory: builder.mutation({
+      query: (id) => ({
+        url: `/products/categories/${id}`,
+        method: 'DELETE',
       }),
       invalidatesTags: ['Categories'],
       transformResponse: (response) => response?.data || null,
@@ -68,6 +96,25 @@ export const productsApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Brands'],
       transformResponse: (response) => response?.data || null,
     }),
+
+    updateBrand: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/products/brands/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Brands', 'Products'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
+    deleteBrand: builder.mutation({
+      query: (id) => ({
+        url: `/products/brands/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Brands'],
+      transformResponse: (response) => response?.data || null,
+    }),
   }),
 });
 
@@ -76,8 +123,14 @@ export const {
   useGetProductByIdQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
+  useDeleteProductMutation,
   useGetCategoriesQuery,
   useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
   useGetBrandsQuery,
   useCreateBrandMutation,
+  useUpdateBrandMutation,
+  useDeleteBrandMutation,
 } = productsApi;
+

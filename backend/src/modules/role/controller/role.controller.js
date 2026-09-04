@@ -61,6 +61,15 @@ export class RoleController {
     }
   };
 
+  deleteRole = async (req, res, next) => {
+    try {
+      const result = await this.roleService.deleteRole(req.params.id, req.user);
+      return ApiResponse.success(res, 'Role deleted successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getStats = async (req, res, next) => {
     try {
       const stats = await this.roleService.getRoleStats(req.user);
@@ -70,3 +79,4 @@ export class RoleController {
     }
   };
 }
+

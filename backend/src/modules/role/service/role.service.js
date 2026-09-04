@@ -87,9 +87,25 @@ export class RoleService {
     return staff;
   }
 
+  async deleteRole(roleId, currentUser) {
+    const role = await this.getRoleById(roleId, currentUser);
+
+    // Relational check: Check if any active user/staff is currently assigned to this role
+    const assignedCount = await User.countDocuments({ role: role._id, isDeleted: false });
+    if (assignedCount > 0) {
+      throw ApiError.badRequest(
+        `Cannot delete role "${role.roleName}" because it is currently assigned to ${assignedCount} active staff member(s). Please reassign their roles first.`
+      );
+    }
+
+    await this.roleRepo.deleteRole(role._id);
+    return { deleted: true, roleName: role.roleName };
+  }
+
   async getRoleStats(currentUser) {
     const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
     return await this.roleRepo.getRoleStats(businessId);
   }
 }
+
 

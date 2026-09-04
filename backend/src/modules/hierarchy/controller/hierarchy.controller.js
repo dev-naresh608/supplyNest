@@ -63,13 +63,24 @@ export class HierarchyController {
     }
   };
 
+  updateChild = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const updated = await this.hierarchyService.updateChildUser(id, req.body, req.user);
+      return ApiResponse.success(res, 'User updated successfully', updated);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   deleteChild = async (req, res, next) => {
     try {
       const { id } = req.params;
-      await this.hierarchyService.deleteChildUser(id, req.user);
-      return ApiResponse.success(res, 'Child user soft deleted');
+      const result = await this.hierarchyService.deleteChildUser(id, req.user);
+      return ApiResponse.success(res, 'User deleted successfully', result);
     } catch (error) {
       next(error);
     }
   };
 }
+

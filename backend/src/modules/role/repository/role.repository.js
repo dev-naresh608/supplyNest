@@ -59,4 +59,14 @@ export class RoleRepository {
       roles: rolesWithCounts,
     };
   }
+
+  async deleteRole(roleId) {
+    return await Role.findByIdAndUpdate(
+      roleId,
+      { isDeleted: true, status: 'DELETED' },
+      { new: true }
+    );
+  }
 }
+
+

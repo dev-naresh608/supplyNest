@@ -47,6 +47,15 @@ export class ProductController {
     }
   };
 
+  deleteProduct = async (req, res, next) => {
+    try {
+      const result = await this.productService.deleteProduct(req.params.id, req.user);
+      return ApiResponse.success(res, 'Product deleted successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   createCategory = async (req, res, next) => {
     try {
       const cat = await this.productService.createCategory(req.body);
@@ -60,6 +69,24 @@ export class ProductController {
     try {
       const categories = await this.productService.getCategories();
       return ApiResponse.success(res, 'Categories fetched', categories);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateCategory = async (req, res, next) => {
+    try {
+      const updated = await this.productService.updateCategory(req.params.id, req.body, req.user);
+      return ApiResponse.success(res, 'Category updated', updated);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteCategory = async (req, res, next) => {
+    try {
+      const result = await this.productService.deleteCategory(req.params.id, req.user);
+      return ApiResponse.success(res, 'Category deleted successfully', result);
     } catch (error) {
       next(error);
     }
@@ -82,4 +109,23 @@ export class ProductController {
       next(error);
     }
   };
+
+  updateBrand = async (req, res, next) => {
+    try {
+      const updated = await this.productService.updateBrand(req.params.id, req.body, req.user);
+      return ApiResponse.success(res, 'Brand updated', updated);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteBrand = async (req, res, next) => {
+    try {
+      const result = await this.productService.deleteBrand(req.params.id, req.user);
+      return ApiResponse.success(res, 'Brand deleted successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
+

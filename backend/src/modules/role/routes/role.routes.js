@@ -27,12 +27,19 @@ router.put(
   controller.updateRole
 );
 
+router.delete(
+  '/:id',
+  restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  controller.deleteRole
+);
+
 router.post(
   '/:id/clone',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
   validateRoleReq(cloneRoleSchema),
   controller.cloneRole
 );
+
 
 router.post(
   '/assign',

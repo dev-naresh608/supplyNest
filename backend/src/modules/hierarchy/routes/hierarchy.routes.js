@@ -28,6 +28,12 @@ router.patch(
   controller.transferChild
 );
 
+router.put(
+  '/children/:id',
+  restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  controller.updateChild
+);
+
 router.delete(
   '/children/:id',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
@@ -35,3 +41,4 @@ router.delete(
 );
 
 export default router;
+

@@ -51,11 +51,36 @@ export class ProductRepository {
     return await Category.find({ isActive: true }).populate('parentCategory', 'name').exec();
   }
 
+  async findCategoryById(id) {
+    return await Category.findById(id);
+  }
+
+  async updateCategory(id, data) {
+    return await Category.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  }
+
+  async deleteCategory(id) {
+    return await Category.findByIdAndDelete(id);
+  }
+
   async createBrand(data) {
     return await Brand.create(data);
+  }
+
+  async findBrandById(id) {
+    return await Brand.findById(id);
+  }
+
+  async updateBrand(id, data) {
+    return await Brand.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  }
+
+  async deleteBrand(id) {
+    return await Brand.findByIdAndDelete(id);
   }
 
   async getBrands() {
     return await Brand.find({ isActive: true }).exec();
   }
 }
+

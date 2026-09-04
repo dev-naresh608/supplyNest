@@ -20,9 +20,17 @@ router.post(
 router.get('/', checkPermission('products', 'view'), controller.getProducts);
 router.get('/categories', controller.getCategories);
 router.post('/categories', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.createCategory);
+router.put('/categories/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.updateCategory);
+router.delete('/categories/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.deleteCategory);
+
 router.get('/brands', controller.getBrands);
 router.post('/brands', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.createBrand);
+router.put('/brands/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.updateBrand);
+router.delete('/brands/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.deleteBrand);
+
 router.get('/:id', checkPermission('products', 'view'), controller.getProductById);
 router.put('/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.updateProduct);
+router.delete('/:id', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.deleteProduct);
 
 export default router;
+

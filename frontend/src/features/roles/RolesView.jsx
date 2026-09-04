@@ -4,9 +4,10 @@ import {
   useGetRoleStatsQuery,
   useCreateRoleMutation,
   useCloneRoleMutation,
+  useDeleteRoleMutation,
   useAssignRoleMutation,
 } from '../../store/api/rolesApi';
-import { Plus, Copy, X } from 'lucide-react';
+import { Plus, Copy, X, Trash2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const RolesView = () => {
@@ -14,9 +15,11 @@ export const RolesView = () => {
   const { data: stats } = useGetRoleStatsQuery();
   const [createRoleApi, { isLoading: isCreating }] = useCreateRoleMutation();
   const [cloneRoleApi] = useCloneRoleMutation();
+  const [deleteRoleApi] = useDeleteRoleMutation();
   const [assignRoleApi] = useAssignRoleMutation();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
   const [newRoleName, setNewRoleName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -70,6 +73,15 @@ export const RolesView = () => {
     }
   };
 
+  const handleDeleteRole = async (role) => {
+    try {
+      await deleteRoleApi(role._id).unwrap();
+      toast.success(`Role "${role.roleName}" deleted successfully`);
+      setDeleteConfirmTarget(null);
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || 'Failed to delete role', { duration: 5000 });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -109,18 +121,65 @@ export const RolesView = () => {
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
                 <span>Assigned Staff: <strong className="text-slate-800 font-semibold">{role.assignedUsersCount ?? 0}</strong></span>
-                <button
-                  onClick={() => handleCloneRole(role._id, role.roleName)}
-                  className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Clone
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCloneRole(role._id, role.roleName)}
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
+                    title="Clone role"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Clone
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmTarget(role)}
+                    className="text-slate-400 hover:text-rose-600 font-semibold flex items-center gap-1 cursor-pointer transition p-1 hover:bg-rose-50 rounded-lg"
+                    title="Delete role"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Delete Role Confirmation Modal */}
+      {deleteConfirmTarget && (
+        <div className="fixed inset-0 z-[110] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-2.5 rounded-xl bg-rose-50">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-slate-900 font-['Outfit']">Delete Dynamic Role</h4>
+                <p className="text-xs text-slate-500">Confirm role removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to delete role <strong className="text-slate-900">{deleteConfirmTarget.roleName}</strong>?
+              If any staff member is currently assigned to this role, deletion will be blocked until their role is reassigned.
+            </p>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setDeleteConfirmTarget(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteRole(deleteConfirmTarget)}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold cursor-pointer shadow-sm"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Role Modal with Permission Matrix */}
       {showCreateModal && (
@@ -219,3 +278,4 @@ export const RolesView = () => {
     </div>
   );
 };
+

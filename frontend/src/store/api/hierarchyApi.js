@@ -49,6 +49,16 @@ export const hierarchyApi = apiSlice.injectEndpoints({
       transformResponse: (response) => response?.data || null,
     }),
 
+    updateChildUser: builder.mutation({
+      query: ({ id, ...updateData }) => ({
+        url: `/hierarchy/children/${id}`,
+        method: 'PUT',
+        body: updateData,
+      }),
+      invalidatesTags: ['Hierarchy'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
     deleteChild: builder.mutation({
       query: (id) => ({
         url: `/hierarchy/children/${id}`,
@@ -66,6 +76,8 @@ export const {
   useGetDirectChildrenQuery,
   useGetHierarchyStatsQuery,
   useCreateChildUserMutation,
+  useUpdateChildUserMutation,
   useTransferChildMutation,
   useDeleteChildMutation,
 } = hierarchyApi;
+
