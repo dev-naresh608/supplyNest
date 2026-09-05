@@ -2,7 +2,12 @@ import { Router } from 'express';
 import { InventoryController } from '../controller/inventory.controller.js';
 import { protect, restrictTo } from '../../../middlewares/auth.middleware.js';
 import { checkPermission } from '../../role/middleware/permission.middleware.js';
-import { validateInventoryReq, assignStockSchema, adjustStockSchema } from '../validator/inventory.validator.js';
+import {
+  validateInventoryReq,
+  assignStockSchema,
+  adjustStockSchema,
+  reviewRequestSchema,
+} from '../validator/inventory.validator.js';
 import { SYSTEM_USER_TYPES } from '../../../constants/userRoles.js';
 
 const router = Router();
@@ -11,8 +16,17 @@ const controller = new InventoryController();
 router.use(protect);
 
 router.get('/my-stock', checkPermission('inventory', 'view'), controller.getMyInventory);
+router.get('/network-stock', restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN), controller.getNetworkStock);
 router.get('/history', checkPermission('inventory', 'view'), controller.getHistory);
 router.get('/alerts', checkPermission('inventory', 'view'), controller.getLowStockAlerts);
+
+router.get('/requests', checkPermission('inventory', 'view'), controller.getAdjustmentRequests);
+router.patch(
+  '/requests/:id/review',
+  restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN),
+  validateInventoryReq(reviewRequestSchema),
+  controller.reviewAdjustmentRequest
+);
 
 router.post(
   '/assign',

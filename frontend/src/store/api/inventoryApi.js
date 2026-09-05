@@ -26,6 +26,34 @@ export const inventoryApi = apiSlice.injectEndpoints({
       transformResponse: (response) => response?.data || [],
     }),
 
+    getNetworkStock: builder.query({
+      query: (params) => ({
+        url: '/inventory/network-stock',
+        params,
+      }),
+      providesTags: ['Inventory'],
+      transformResponse: (response) => response?.data || [],
+    }),
+
+    getAdjustmentRequests: builder.query({
+      query: (params) => ({
+        url: '/inventory/requests',
+        params,
+      }),
+      providesTags: ['StockRequests'],
+      transformResponse: (response) => response?.data || [],
+    }),
+
+    reviewAdjustmentRequest: builder.mutation({
+      query: ({ id, action, reviewNotes }) => ({
+        url: `/inventory/requests/${id}/review`,
+        method: 'PATCH',
+        body: { action, reviewNotes },
+      }),
+      invalidatesTags: ['Inventory', 'Transactions', 'Alerts', 'StockRequests'],
+      transformResponse: (response) => response?.data || null,
+    }),
+
     assignStock: builder.mutation({
       query: (assignmentData) => ({
         url: '/inventory/assign',
@@ -42,16 +70,19 @@ export const inventoryApi = apiSlice.injectEndpoints({
         method: 'POST',
         body: adjustmentData,
       }),
-      invalidatesTags: ['Inventory', 'Transactions', 'Alerts'],
-      transformResponse: (response) => response?.data || null,
+      invalidatesTags: ['Inventory', 'Transactions', 'Alerts', 'StockRequests'],
+      transformResponse: (response) => response || null,
     }),
   }),
 });
 
 export const {
   useGetMyStockQuery,
+  useGetNetworkStockQuery,
   useGetTransactionHistoryQuery,
   useGetLowStockAlertsQuery,
+  useGetAdjustmentRequestsQuery,
+  useReviewAdjustmentRequestMutation,
   useAssignStockMutation,
   useAdjustStockMutation,
 } = inventoryApi;

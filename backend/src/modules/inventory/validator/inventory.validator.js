@@ -17,8 +17,14 @@ export const adjustStockSchema = z.object({
     STOCK_TRANSACTION_TYPES.DAMAGE,
     STOCK_TRANSACTION_TYPES.CORRECTION,
     STOCK_TRANSACTION_TYPES.ADJUSTMENT,
+    STOCK_TRANSACTION_TYPES.RETURN,
   ]),
   notes: z.string().optional(),
+});
+
+export const reviewRequestSchema = z.object({
+  action: z.enum(['APPROVE', 'REJECT']),
+  reviewNotes: z.string().optional(),
 });
 
 export const validateInventoryReq = (schema) => (req, res, next) => {

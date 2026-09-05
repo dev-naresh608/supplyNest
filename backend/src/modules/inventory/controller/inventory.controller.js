@@ -52,6 +52,43 @@ export class InventoryController {
     }
   };
 
+  getAdjustmentRequests = async (req, res, next) => {
+    try {
+      const result = await this.inventoryService.getAdjustmentRequests(req.user, req.query);
+      return ApiResponse.success(res, 'Stock adjustment requests fetched', result.items, {
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  reviewAdjustmentRequest = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { action, reviewNotes } = req.body;
+      const updated = await this.inventoryService.reviewAdjustmentRequest(req.user, id, action, reviewNotes);
+      return ApiResponse.success(res, `Stock adjustment request ${action.toLowerCase()}ed successfully`, updated);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getNetworkStock = async (req, res, next) => {
+    try {
+      const result = await this.inventoryService.getNetworkStock(req.user, req.query);
+      return ApiResponse.success(res, 'Network stock distribution fetched', result.items, {
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getLowStockAlerts = async (req, res, next) => {
     try {
       const alerts = await this.inventoryService.getLowStockAlerts(req.user);

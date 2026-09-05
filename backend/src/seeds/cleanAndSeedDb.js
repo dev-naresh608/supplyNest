@@ -6,6 +6,7 @@ import { Product } from '../modules/product/model/Product.js';
 import { Category, Brand } from '../modules/product/model/Category.js';
 import { Inventory } from '../modules/inventory/model/Inventory.js';
 import { StockTransaction } from '../modules/inventory/model/StockTransaction.js';
+import { StockAdjustmentRequest } from '../modules/inventory/model/StockAdjustmentRequest.js';
 import { Role } from '../modules/role/model/Role.js';
 import { RevenueTransaction } from '../modules/revenue/model/RevenueTransaction.js';
 import { SYSTEM_USER_TYPES, ACCOUNT_STATUS } from '../constants/userRoles.js';
@@ -28,6 +29,7 @@ export const cleanAndSeedDb = async () => {
       Brand.deleteMany({}),
       Inventory.deleteMany({}),
       StockTransaction.deleteMany({}),
+      StockAdjustmentRequest.deleteMany({}),
       Role.deleteMany({}),
       RevenueTransaction.deleteMany({}),
     ]);
