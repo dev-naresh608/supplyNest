@@ -25,11 +25,24 @@ export class ProductService {
       throw ApiError.conflict(`Product with SKU "${normalizedSku}" already exists`);
     }
 
-    const product = await this.productRepo.createProduct({
+    const cleanBarcode =
+      productData.barcode && typeof productData.barcode === 'string' && productData.barcode.trim() !== ''
+        ? productData.barcode.trim()
+        : undefined;
+
+    const productPayload = {
       ...productData,
       sku: normalizedSku,
       createdBy: currentUser._id,
-    });
+    };
+
+    if (cleanBarcode) {
+      productPayload.barcode = cleanBarcode;
+    } else {
+      delete productPayload.barcode;
+    }
+
+    const product = await this.productRepo.createProduct(productPayload);
 
     // Automatically seed root inventory for Super Admin if initialStockQty > 0
     if (initialStockQty > 0) {
@@ -84,6 +97,15 @@ export class ProductService {
       });
       if (existingSku) {
         throw ApiError.conflict(`Another product with SKU "${updateData.sku}" already exists`);
+      }
+    }
+
+    if (updateData.barcode !== undefined) {
+      if (updateData.barcode && typeof updateData.barcode === 'string' && updateData.barcode.trim() !== '') {
+        updateData.barcode = updateData.barcode.trim();
+      } else {
+        delete updateData.barcode;
+        updateData.$unset = { ...updateData.$unset, barcode: 1 };
       }
     }
 

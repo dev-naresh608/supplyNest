@@ -53,15 +53,19 @@ export const ProductsView = () => {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+    const payload = {
+      ...form,
+      costPrice: Number(form.costPrice),
+      purchasePrice: Number(form.purchasePrice),
+      sellingPrice: Number(form.sellingPrice),
+      mrp: Number(form.mrp),
+      initialStockQty: Number(form.initialStockQty),
+    };
+    if (!payload.barcode || !payload.barcode.trim()) {
+      delete payload.barcode;
+    }
     try {
-      await createProductApi({
-        ...form,
-        costPrice: Number(form.costPrice),
-        purchasePrice: Number(form.purchasePrice),
-        sellingPrice: Number(form.sellingPrice),
-        mrp: Number(form.mrp),
-        initialStockQty: Number(form.initialStockQty),
-      }).unwrap();
+      await createProductApi(payload).unwrap();
       toast.success('Master product created successfully');
       setShowCreateModal(false);
       setForm({

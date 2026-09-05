@@ -3,7 +3,7 @@ import { ApiError } from '../../../utils/ApiError.js';
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const updateProfileSchema = z.object({
@@ -23,6 +23,7 @@ export const validate = (schema) => (req, res, next) => {
     next();
   } catch (error) {
     const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
-    next(ApiError.badRequest('Validation error', errorMessages));
+    const message = errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation error';
+    next(ApiError.badRequest(message, errorMessages));
   }
 };

@@ -21,7 +21,14 @@ const productSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    barcode: { type: String, unique: true, sparse: true, index: true },
+    barcode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      default: undefined,
+      set: (v) => (v && typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined),
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

@@ -22,6 +22,7 @@ export const validateRoleReq = (schema) => (req, res, next) => {
     next();
   } catch (error) {
     const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
-    next(ApiError.badRequest('Validation error', errorMessages));
+    const message = errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation error';
+    next(ApiError.badRequest(message, errorMessages));
   }
 };

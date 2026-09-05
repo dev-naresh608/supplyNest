@@ -69,13 +69,21 @@ export const HierarchyTreeView = () => {
 
   const handleCreateChild = async (e) => {
     e.preventDefault();
+    if (!childForm.password || childForm.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
     try {
       await createChildApi(childForm).unwrap();
       toast.success('Child business created successfully');
       setShowCreateModal(false);
       setChildForm({ firstName: '', lastName: '', email: '', password: '', userType: 'BUSINESS' });
     } catch (err) {
-      toast.error(err?.data?.message || err?.message || 'Failed to create child business');
+      const errorMsg =
+        err?.data?.errors?.length > 0
+          ? err.data.errors.join(', ')
+          : err?.data?.message || err?.message || 'Failed to create child business';
+      toast.error(errorMsg);
     }
   };
 
@@ -497,10 +505,12 @@ export const HierarchyTreeView = () => {
               </div>
 
               <div>
-                <label className="text-slate-700 font-semibold block mb-1">Password</label>
+                <label className="text-slate-700 font-semibold block mb-1">Password <span className="text-slate-400 text-[10px] font-normal">(min 6 characters)</span></label>
                 <input
                   type="password"
                   required
+                  minLength={6}
+                  placeholder="Min 6 characters"
                   value={childForm.password}
                   onChange={(e) => setChildForm({ ...childForm, password: e.target.value })}
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
