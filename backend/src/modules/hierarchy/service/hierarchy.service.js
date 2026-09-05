@@ -27,6 +27,7 @@ export class HierarchyService {
     const newUser = new User({
       ...userData,
       userType: userData.userType || SYSTEM_USER_TYPES.BUSINESS,
+      role: userData.role || null,
       parentUser: creatorUser._id,
       ancestorPath: parentPath,
       hierarchyLevel: creatorUser.hierarchyLevel + 1,
@@ -34,7 +35,8 @@ export class HierarchyService {
       status: ACCOUNT_STATUS.ACTIVE,
     });
 
-    return await newUser.save();
+    const saved = await newUser.save();
+    return await User.findById(saved._id).populate('role', 'roleName permissions');
   }
 
   async getTree(currentUser) {
@@ -42,9 +44,13 @@ export class HierarchyService {
 
     let rootNodes;
     if (isSuperAdmin) {
-      rootNodes = await User.find({ parentUser: null, isDeleted: false }).select('-password');
+      rootNodes = await User.find({ parentUser: null, isDeleted: false })
+        .populate('role', 'roleName')
+        .select('-password');
     } else {
-      rootNodes = [currentUser];
+      rootNodes = await User.find({ _id: currentUser._id, isDeleted: false })
+        .populate('role', 'roleName')
+        .select('-password');
     }
 
     const buildSubtree = async (node) => {
@@ -60,6 +66,8 @@ export class HierarchyService {
         userType: node.userType,
         status: node.status,
         level: node.hierarchyLevel,
+        role: node.role,
+        roleName: node.role?.roleName || null,
         childrenCount: children.length,
         children: childNodes,
       };
@@ -175,15 +183,19 @@ export class HierarchyService {
       child.email = updateData.email.toLowerCase().trim();
     }
 
-    const allowedFields = ['firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'status'];
+    const allowedFields = ['firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'status', 'userType'];
     allowedFields.forEach((field) => {
       if (updateData[field] !== undefined) {
         child[field] = updateData[field];
       }
     });
 
+    if (updateData.role !== undefined) {
+      child.role = updateData.role ? updateData.role : null;
+    }
+
     await child.save();
-    return child;
+    return await User.findById(child._id).populate('role', 'roleName permissions');
   }
 
 

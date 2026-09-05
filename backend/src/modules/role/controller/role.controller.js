@@ -53,9 +53,13 @@ export class RoleController {
 
   assignRole = async (req, res, next) => {
     try {
-      const { staffUserId, roleId } = req.body;
-      const staff = await this.roleService.assignRoleToStaff(staffUserId, roleId, req.user);
-      return ApiResponse.success(res, 'Role assigned to staff member', staff);
+      const { staffUserId, userId, roleId } = req.body;
+      const targetUserId = userId || staffUserId;
+      if (!targetUserId) {
+        return ApiResponse.badRequest(res, 'Target user ID is required');
+      }
+      const updatedUser = await this.roleService.assignRoleToUser(targetUserId, roleId, req.user);
+      return ApiResponse.success(res, 'Role assignment updated successfully', updatedUser);
     } catch (error) {
       next(error);
     }

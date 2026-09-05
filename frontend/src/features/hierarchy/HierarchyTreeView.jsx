@@ -8,6 +8,7 @@ import {
   useTransferChildMutation,
   useDeleteChildMutation,
 } from '../../store/api/hierarchyApi';
+import { useGetRolesQuery } from '../../store/api/rolesApi';
 import {
   ChevronRight,
   ChevronDown,
@@ -18,6 +19,7 @@ import {
   X,
   Layers,
   AlertCircle,
+  Shield,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -25,6 +27,7 @@ export const HierarchyTreeView = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
   const { data: treeData = [], isLoading: isTreeLoading } = useGetHierarchyTreeQuery();
   const { data: downlineList = [], isLoading: isDownlineLoading } = useGetDownlineQuery();
+  const { data: roles = [] } = useGetRolesQuery();
   const [createChildApi, { isLoading: isCreating }] = useCreateChildUserMutation();
   const [updateChildApi, { isLoading: isUpdating }] = useUpdateChildUserMutation();
   const [transferChildApi, { isLoading: isTransferring }] = useTransferChildMutation();
@@ -47,6 +50,7 @@ export const HierarchyTreeView = () => {
     email: '',
     password: '',
     userType: 'BUSINESS',
+    role: '',
   });
 
   const [editForm, setEditForm] = useState({
@@ -58,6 +62,8 @@ export const HierarchyTreeView = () => {
     address: '',
     city: '',
     status: 'ACTIVE',
+    userType: 'BUSINESS',
+    role: '',
   });
 
 
@@ -74,10 +80,13 @@ export const HierarchyTreeView = () => {
       return;
     }
     try {
-      await createChildApi(childForm).unwrap();
-      toast.success('Child business created successfully');
+      await createChildApi({
+        ...childForm,
+        role: childForm.role ? childForm.role : undefined,
+      }).unwrap();
+      toast.success('Child business node created successfully');
       setShowCreateModal(false);
-      setChildForm({ firstName: '', lastName: '', email: '', password: '', userType: 'BUSINESS' });
+      setChildForm({ firstName: '', lastName: '', email: '', password: '', userType: 'BUSINESS', role: '' });
     } catch (err) {
       const errorMsg =
         err?.data?.errors?.length > 0
@@ -91,7 +100,8 @@ export const HierarchyTreeView = () => {
     setEditForm({
       id: item._id || item.id,
       level: item.level !== undefined ? item.level : item.hierarchyLevel,
-      userType: item.userType,
+      userType: item.userType || 'BUSINESS',
+      role: item.role?._id || (typeof item.role === 'string' ? item.role : ''),
       firstName: item.firstName || item.name?.split(' ')[0] || '',
       lastName: item.lastName || item.name?.split(' ').slice(1).join(' ') || '',
       phone: item.phone || '',
@@ -164,7 +174,15 @@ export const HierarchyTreeView = () => {
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold text-slate-900">{node.name}</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-slate-900">{node.name}</h4>
+                {node.roleName && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold flex items-center gap-1">
+                    <Shield className="w-2.5 h-2.5" />
+                    {node.roleName}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500 font-medium">{node.email}</p>
             </div>
           </div>
@@ -175,7 +193,7 @@ export const HierarchyTreeView = () => {
             </span>
             <button
               onClick={() => handleOpenEdit(node)}
-              title="Edit Node"
+              title="Edit Node & Role"
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition text-xs flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-3.5 h-3.5" />
@@ -214,7 +232,7 @@ export const HierarchyTreeView = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 font-['Outfit']">Business Distribution Network</h2>
-          <p className="text-xs text-slate-500 font-medium">Manage multi-tier hierarchical parent-child relationships</p>
+          <p className="text-xs text-slate-500 font-medium">Manage multi-tier hierarchical parent-child relationships and assigned roles</p>
         </div>
 
         <button
@@ -222,7 +240,7 @@ export const HierarchyTreeView = () => {
           className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
         >
           <UserPlus className="w-4 h-4" />
-          Add Child Business
+          Add Child Business / User
         </button>
       </div>
 
@@ -263,8 +281,9 @@ export const HierarchyTreeView = () => {
             <table className="w-full text-left text-xs text-slate-700">
               <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
                 <tr>
-                  <th className="p-3.5">Business Name</th>
+                  <th className="p-3.5">Business / User Name</th>
                   <th className="p-3.5">Email</th>
+                  <th className="p-3.5">Assigned Role</th>
                   <th className="p-3.5">Level</th>
                   <th className="p-3.5">Status</th>
                   <th className="p-3.5 text-right">Actions</th>
@@ -277,6 +296,16 @@ export const HierarchyTreeView = () => {
                       {item.firstName} {item.lastName}
                     </td>
                     <td className="p-3.5 text-slate-500 font-medium">{item.email}</td>
+                    <td className="p-3.5">
+                      {item.role?.roleName ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold text-[10px] inline-flex items-center gap-1">
+                          <Shield className="w-2.5 h-2.5" />
+                          {item.role.roleName}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">Default Business</span>
+                      )}
+                    </td>
                     <td className="p-3.5 font-semibold text-slate-700">Level {item.hierarchyLevel}</td>
                     <td className="p-3.5">
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
@@ -413,6 +442,22 @@ export const HierarchyTreeView = () => {
               </div>
 
               <div>
+                <label className="text-slate-700 font-semibold block mb-1">Assigned Dynamic Role</label>
+                <select
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                >
+                  <option value="">No Role (Default Node)</option>
+                  {roles.map((r) => (
+                    <option key={r._id} value={r._id}>
+                      {r.roleName} ({r.description || 'Custom Permissions'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="text-slate-700 font-semibold block mb-1">Account Status</label>
                 {editForm.id === currentUser?._id || editForm.level === 0 || editForm.userType === 'SUPER_ADMIN' ? (
                   <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-medium text-xs flex items-center justify-between">
@@ -435,7 +480,6 @@ export const HierarchyTreeView = () => {
                 )}
               </div>
 
-
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
@@ -444,8 +488,12 @@ export const HierarchyTreeView = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
-                  Save Changes
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -459,7 +507,7 @@ export const HierarchyTreeView = () => {
           <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Create Downline Business</h3>
+                <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Create Downline Business / User</h3>
                 <p className="text-xs text-slate-500">Register a new child node in your distribution hierarchy</p>
               </div>
               <button
@@ -471,26 +519,28 @@ export const HierarchyTreeView = () => {
             </div>
 
             <form onSubmit={handleCreateChild} className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">First Name</label>
-                <input
-                  type="text"
-                  required
-                  value={childForm.firstName}
-                  onChange={(e) => setChildForm({ ...childForm, firstName: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">First Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={childForm.firstName}
+                    onChange={(e) => setChildForm({ ...childForm, firstName: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  />
+                </div>
 
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
-                <input
-                  type="text"
-                  required
-                  value={childForm.lastName}
-                  onChange={(e) => setChildForm({ ...childForm, lastName: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={childForm.lastName}
+                    onChange={(e) => setChildForm({ ...childForm, lastName: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  />
+                </div>
               </div>
 
               <div>
@@ -517,6 +567,36 @@ export const HierarchyTreeView = () => {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Node Type</label>
+                  <select
+                    value={childForm.userType}
+                    onChange={(e) => setChildForm({ ...childForm, userType: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
+                  >
+                    <option value="BUSINESS">Business Entity</option>
+                    <option value="STAFF">Staff Member</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Assign Role</label>
+                  <select
+                    value={childForm.role}
+                    onChange={(e) => setChildForm({ ...childForm, role: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
+                  >
+                    <option value="">Default (No Role)</option>
+                    {roles.map((r) => (
+                      <option key={r._id} value={r._id}>
+                        {r.roleName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
@@ -525,8 +605,12 @@ export const HierarchyTreeView = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
-                  Create Business Node
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {isCreating ? 'Creating...' : 'Create Business Node'}
                 </button>
               </div>
             </form>

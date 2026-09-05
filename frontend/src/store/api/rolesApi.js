@@ -54,10 +54,10 @@ export const rolesApi = apiSlice.injectEndpoints({
     }),
 
     assignRole: builder.mutation({
-      query: ({ staffUserId, roleId }) => ({
+      query: ({ userId, staffUserId, roleId }) => ({
         url: '/roles/assign',
         method: 'POST',
-        body: { staffUserId, roleId },
+        body: { userId: userId || staffUserId, roleId },
       }),
       invalidatesTags: ['Roles', 'Hierarchy', 'Auth'],
       transformResponse: (response) => response?.data || null,

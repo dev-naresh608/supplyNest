@@ -7,19 +7,23 @@ import {
   useDeleteRoleMutation,
   useAssignRoleMutation,
 } from '../../store/api/rolesApi';
-import { Plus, Copy, X, Trash2, AlertCircle } from 'lucide-react';
+import { useGetDownlineQuery } from '../../store/api/hierarchyApi';
+import { Plus, Copy, X, Trash2, AlertCircle, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const RolesView = () => {
   const { data: roles = [], isLoading: isRolesLoading } = useGetRolesQuery();
   const { data: stats } = useGetRoleStatsQuery();
+  const { data: downlineList = [] } = useGetDownlineQuery();
   const [createRoleApi, { isLoading: isCreating }] = useCreateRoleMutation();
   const [cloneRoleApi] = useCloneRoleMutation();
   const [deleteRoleApi] = useDeleteRoleMutation();
-  const [assignRoleApi] = useAssignRoleMutation();
+  const [assignRoleApi, { isLoading: isAssigning }] = useAssignRoleMutation();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
+  const [assignModalRole, setAssignModalRole] = useState(null);
+  const [assignUserId, setAssignUserId] = useState('');
   const [newRoleName, setNewRoleName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -118,6 +122,24 @@ export const RolesView = () => {
     }
   };
 
+  const handleAssignRole = async (e) => {
+    e.preventDefault();
+    if (!assignModalRole) return;
+    const targetUserId = assignUserId || downlineList[0]?._id;
+    if (!targetUserId) {
+      toast.error('Please select a target user from your downline');
+      return;
+    }
+
+    try {
+      await assignRoleApi({ userId: targetUserId, roleId: assignModalRole._id }).unwrap();
+      toast.success(`Role "${assignModalRole.roleName}" assigned successfully`);
+      setAssignModalRole(null);
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || 'Role assignment failed');
+    }
+  };
+
   const handleCloneRole = async (roleId, roleName) => {
     const clonedName = prompt(`Enter new cloned name for ${roleName}:`, `${roleName} Copy`);
     if (!clonedName) return;
@@ -177,15 +199,25 @@ export const RolesView = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Assigned Staff: <strong className="text-slate-800 font-semibold">{role.assignedUsersCount ?? 0}</strong></span>
+                <span>Assigned Users: <strong className="text-slate-800 font-semibold">{role.assignedStaffCount ?? role.assignedUsersCount ?? 0}</strong></span>
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={() => {
+                      setAssignModalRole(role);
+                      setAssignUserId(downlineList[0]?._id || '');
+                    }}
+                    className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
+                    title="Assign to downline users"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    Assign
+                  </button>
+                  <button
                     onClick={() => handleCloneRole(role._id, role.roleName)}
-                    className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer p-1 hover:bg-indigo-50 rounded-lg"
                     title="Clone role"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    Clone
                   </button>
                   <button
                     onClick={() => setDeleteConfirmTarget(role)}
@@ -388,6 +420,73 @@ export const RolesView = () => {
                 </button>
                 <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
                   Save Role Matrix
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Role Modal */}
+      {assignModalRole && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Assign Role to Business / Staff</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Role: <span className="text-indigo-600 font-bold">{assignModalRole.roleName}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setAssignModalRole(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignRole} className="space-y-4 text-xs">
+              <div>
+                <label className="text-slate-700 font-semibold block mb-1">Target Downline Business / User</label>
+                {downlineList.length === 0 ? (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                    No downline business nodes or staff found. Create downline nodes in <strong>Business Hierarchy</strong> first.
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={assignUserId}
+                    onChange={(e) => setAssignUserId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  >
+                    {downlineList.map((userNode) => (
+                      <option key={userNode._id} value={userNode._id} className="bg-white text-slate-900">
+                        {userNode.firstName} {userNode.lastName} ({userNode.email}) - Level {userNode.hierarchyLevel} [{userNode.role?.roleName || 'No Role'}]
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
+                Assigning this role will apply the modular permissions configured for <strong>{assignModalRole.roleName}</strong> to the selected business/staff node.
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAssignModalRole(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={downlineList.length === 0 || isAssigning}
+                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {isAssigning ? 'Assigning...' : 'Assign Role'}
                 </button>
               </div>
             </form>

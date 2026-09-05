@@ -66,25 +66,30 @@ export class RoleService {
     return cloned;
   }
 
-  async assignRoleToStaff(staffUserId, roleId, currentUser) {
-    const staff = await User.findById(staffUserId);
-    if (!staff || staff.isDeleted) throw ApiError.notFound('Staff user not found');
+  async assignRoleToUser(targetUserId, roleId, currentUser) {
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser || targetUser.isDeleted) throw ApiError.notFound('Target user not found');
 
-    // Ensure target user is a STAFF member
-    if (staff.userType !== 'STAFF') {
-      throw ApiError.badRequest('Roles can only be assigned to STAFF user accounts');
+    // Super Admin or direct/downline parent check
+    if (currentUser.userType !== 'SUPER_ADMIN') {
+      const isDirectChild = targetUser.parentUser?.toString() === currentUser._id.toString();
+      const isDownline = targetUser.ancestorPath && targetUser.ancestorPath.includes(currentUser._id.toString());
+      const isSelf = targetUser._id.toString() === currentUser._id.toString();
+
+      if (!isDirectChild && !isDownline && !isSelf) {
+        throw ApiError.forbidden('You can only assign roles to users within your downline hierarchy');
+      }
     }
 
-    // Ensure staff belongs to current business downline
-    if (staff.parentUser.toString() !== currentUser._id.toString() && currentUser.userType !== 'SUPER_ADMIN') {
-      throw ApiError.forbidden('You can only assign roles to staff in your branch');
+    if (roleId) {
+      const role = await this.getRoleById(roleId, currentUser);
+      targetUser.role = role._id;
+    } else {
+      targetUser.role = null;
     }
 
-    const role = await this.getRoleById(roleId, currentUser);
-    staff.role = role._id;
-    await staff.save();
-
-    return staff;
+    await targetUser.save();
+    return await User.findById(targetUser._id).populate('role', 'roleName permissions');
   }
 
   async deleteRole(roleId, currentUser) {

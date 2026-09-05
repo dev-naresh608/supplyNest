@@ -12,8 +12,9 @@ export const cloneRoleSchema = z.object({
 });
 
 export const assignRoleSchema = z.object({
-  staffUserId: z.string().min(24, 'Invalid staff user ID'),
-  roleId: z.string().min(24, 'Invalid role ID'),
+  userId: z.string().min(24, 'Invalid user ID').optional(),
+  staffUserId: z.string().min(24, 'Invalid user ID').optional(),
+  roleId: z.string().nullable().optional(),
 });
 
 export const validateRoleReq = (schema) => (req, res, next) => {
