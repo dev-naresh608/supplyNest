@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { User } from '../modules/auth/model/User.js';
 import { Session } from '../modules/auth/model/Session.js';
+import { LoginHistory } from '../modules/auth/model/LoginHistory.js';
 import { Product } from '../modules/product/model/Product.js';
 import { Category, Brand } from '../modules/product/model/Category.js';
 import { Inventory } from '../modules/inventory/model/Inventory.js';
@@ -21,6 +22,7 @@ export const cleanAndSeedDb = async () => {
     await Promise.all([
       User.deleteMany({}),
       Session.deleteMany({}),
+      LoginHistory.deleteMany({}),
       Product.deleteMany({}),
       Category.deleteMany({}),
       Brand.deleteMany({}),
@@ -36,14 +38,14 @@ export const cleanAndSeedDb = async () => {
       firstName: 'System',
       lastName: 'SuperAdmin',
       email: 'admin@invora.com',
-      password: 'SuperAdmin@2026!',
+      password: 'invora123',
       userType: SYSTEM_USER_TYPES.SUPER_ADMIN,
       status: ACCOUNT_STATUS.ACTIVE,
       hierarchyLevel: 0,
       ancestorPath: '',
       isEmailVerified: true,
     });
-    logger.info(`Super Admin initialized: admin@invora.com / SuperAdmin@2026! (ID: ${superAdmin._id})`);
+    logger.info(`Super Admin initialized: admin@invora.com / invora123 (ID: ${superAdmin._id})`);
 
     // 3. Seed baseline clean categories
     const electronics = await Category.create({

@@ -18,14 +18,14 @@ export const seedSuperAdmin = async () => {
         firstName: 'System',
         lastName: 'SuperAdmin',
         email: 'admin@invora.com',
-        password: 'SuperAdmin@2026!',
+        password: 'invora123',
         userType: SYSTEM_USER_TYPES.SUPER_ADMIN,
         status: ACCOUNT_STATUS.ACTIVE,
         hierarchyLevel: 0,
         ancestorPath: '',
         isEmailVerified: true,
       });
-      logger.info('Super Admin created: admin@invora.com / SuperAdmin@2026!');
+      logger.info('Super Admin created: admin@invora.com / invora123');
     } else {
       admin = existingAdmin;
       logger.info('Super Admin already exists.');

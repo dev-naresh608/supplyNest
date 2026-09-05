@@ -8,7 +8,7 @@ export const LoginView = () => {
   const [loginApi, { isLoading }] = useLoginMutation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('admin@invora.com');
-  const [password, setPassword] = useState('SuperAdmin@2026!');
+  const [password, setPassword] = useState('invora123');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
