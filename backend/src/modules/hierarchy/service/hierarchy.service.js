@@ -33,6 +33,14 @@ export class HierarchyService {
       throw ApiError.badRequest('The assigned dynamic role does not exist or is invalid');
     }
 
+    // Role branch scope validation: Non-superadmin can only assign roles created within their own business
+    if (creatorUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const creatorBusinessId = creatorUser.userType === SYSTEM_USER_TYPES.STAFF ? creatorUser.parentUser : creatorUser._id;
+      if (assignedRole.parentBusiness.toString() !== creatorBusinessId.toString()) {
+        throw ApiError.forbidden('You can only assign roles created within your own business scope');
+      }
+    }
+
     const existing = await User.findOne({ email: userData.email.toLowerCase().trim(), isDeleted: false });
     if (existing) {
       throw ApiError.conflict('User with this email already exists');
@@ -228,6 +236,12 @@ export class HierarchyService {
         const assignedRole = await Role.findById(updateData.role);
         if (!assignedRole || assignedRole.isDeleted) {
           throw ApiError.badRequest('Assigned role does not exist or is invalid');
+        }
+        if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+          const requestingBusinessId = requestingUser.userType === SYSTEM_USER_TYPES.STAFF ? requestingUser.parentUser : requestingUser._id;
+          if (assignedRole.parentBusiness.toString() !== requestingBusinessId.toString()) {
+            throw ApiError.forbidden('You can only assign roles created within your own business scope');
+          }
         }
         child.role = assignedRole._id;
       } else {

@@ -8,7 +8,7 @@ export class RoleService {
   }
 
   async createRole(currentUser, roleData) {
-    const businessId = currentUser._id;
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
     const existing = await this.roleRepo.findByNameAndBusiness(roleData.roleName, businessId);
 
     if (existing) {
@@ -24,18 +24,16 @@ export class RoleService {
     return role;
   }
 
-  async getBusinessRoles(currentUser, options) {
-    if (currentUser.userType === 'SUPER_ADMIN') {
+  async getBusinessRoles(currentUser, options = {}) {
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
+    
+    // Super Admin can optionally fetch all platform roles if query param all=true, otherwise scoped to their business
+    if (currentUser.userType === 'SUPER_ADMIN' && options.all === 'true') {
       return await this.roleRepo.findAllRoles(options);
     }
-    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
-    const ancestorIds = currentUser.ancestorPath
-      ? currentUser.ancestorPath.split('/').filter(Boolean)
-      : [];
-    const allowedBusinessIds = [businessId, ...ancestorIds];
-    if (currentUser.parentUser) allowedBusinessIds.push(currentUser.parentUser);
 
-    return await this.roleRepo.findByBusiness(allowedBusinessIds, options);
+    // Strict branch isolation: every business entity only sees their own roles
+    return await this.roleRepo.findByBusiness(businessId, options);
   }
 
   async getRoleById(roleId, currentUser) {
@@ -44,14 +42,8 @@ export class RoleService {
 
     if (currentUser.userType !== 'SUPER_ADMIN') {
       const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
-      const ancestorIds = currentUser.ancestorPath
-        ? currentUser.ancestorPath.split('/').filter(Boolean).map(String)
-        : [];
-      const allowedBusinessIds = [businessId.toString(), ...ancestorIds];
-      if (currentUser.parentUser) allowedBusinessIds.push(currentUser.parentUser.toString());
-
-      if (!allowedBusinessIds.includes(role.parentBusiness.toString())) {
-        throw ApiError.forbidden('Access denied to role from another branch');
+      if (role.parentBusiness.toString() !== businessId.toString()) {
+        throw ApiError.forbidden('Access denied: You can only view or manage roles belonging to your own business');
       }
     }
     return role;
@@ -65,16 +57,17 @@ export class RoleService {
 
   async cloneRole(roleId, newRoleName, currentUser) {
     const existingRole = await this.getRoleById(roleId, currentUser);
+    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
 
-    const duplicate = await this.roleRepo.findByNameAndBusiness(newRoleName, currentUser._id);
+    const duplicate = await this.roleRepo.findByNameAndBusiness(newRoleName, businessId);
     if (duplicate) {
-      throw ApiError.conflict(`Role with name "${newRoleName}" already exists`);
+      throw ApiError.conflict(`Role with name "${newRoleName}" already exists in your business`);
     }
 
     const cloned = await this.roleRepo.createRole({
       roleName: newRoleName,
       description: `Cloned from ${existingRole.roleName}`,
-      parentBusiness: currentUser._id,
+      parentBusiness: businessId,
       createdBy: currentUser._id,
       permissions: existingRole.permissions,
       status: 'ACTIVE',

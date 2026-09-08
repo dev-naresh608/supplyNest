@@ -196,8 +196,23 @@ export const RolesView = () => {
       {/* Role Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {roles.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
-            No dynamic roles configured.
+          <div className="col-span-full text-center py-12 px-6 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
+              <Shield className="w-6 h-6" />
+            </div>
+            <h4 className="text-base font-bold text-slate-900 font-['Outfit']">No Branch Roles Created Yet</h4>
+            <p className="text-xs text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+              Roles are strictly scoped to your own business entity. Click <strong className="text-indigo-600">"+ Create Branch Role"</strong> to define custom permission matrices for your downline nodes and staff.
+            </p>
+            {canCreateRole && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 rounded-xl glow-btn text-white text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-sm mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create First Branch Role
+              </button>
+            )}
           </div>
         ) : (
           roles.map((role) => (
