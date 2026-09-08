@@ -9,6 +9,7 @@ import {
   useDeleteChildMutation,
 } from '../../store/api/hierarchyApi';
 import { useGetRolesQuery } from '../../store/api/rolesApi';
+import { hasPermission } from '../../utils/permissionUtils';
 import {
   ChevronRight,
   ChevronDown,
@@ -32,6 +33,10 @@ export const HierarchyTreeView = () => {
   const [updateChildApi, { isLoading: isUpdating }] = useUpdateChildUserMutation();
   const [transferChildApi, { isLoading: isTransferring }] = useTransferChildMutation();
   const [deleteChildApi] = useDeleteChildMutation();
+
+  const canCreateNode = hasPermission(currentUser, 'users', 'create');
+  const canUpdateNode = hasPermission(currentUser, 'users', 'update');
+  const canDeleteNode = hasPermission(currentUser, 'users', 'delete');
 
   const [activeTab, setActiveTab] = useState('tree');
   const [expandedNodes, setExpandedNodes] = useState({});
@@ -66,7 +71,6 @@ export const HierarchyTreeView = () => {
     role: '',
   });
 
-
   const [transferParentId, setTransferParentId] = useState('');
 
   const toggleNode = (id) => {
@@ -75,6 +79,10 @@ export const HierarchyTreeView = () => {
 
   const handleCreateChild = async (e) => {
     e.preventDefault();
+    if (!childForm.role) {
+      toast.error('A dynamic role is mandatory. Please select a role.');
+      return;
+    }
     if (!childForm.password || childForm.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
@@ -82,7 +90,7 @@ export const HierarchyTreeView = () => {
     try {
       await createChildApi({
         ...childForm,
-        role: childForm.role ? childForm.role : undefined,
+        role: childForm.role,
       }).unwrap();
       toast.success('Child business node created successfully');
       setShowCreateModal(false);
@@ -112,9 +120,12 @@ export const HierarchyTreeView = () => {
     setShowEditModal(true);
   };
 
-
   const handleUpdateChild = async (e) => {
     e.preventDefault();
+    if (!editForm.role) {
+      toast.error('A dynamic role is mandatory. Please select a role.');
+      return;
+    }
     try {
       await updateChildApi(editForm).unwrap();
       toast.success('Business node details updated successfully');
@@ -186,29 +197,32 @@ export const HierarchyTreeView = () => {
               <p className="text-xs text-slate-500 font-medium">{node.email}</p>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-semibold">
               {node.childrenCount} Children
             </span>
-            <button
-              onClick={() => handleOpenEdit(node)}
-              title="Edit Node & Role"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition text-xs flex items-center gap-1 cursor-pointer"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => {
-                setSelectedNodeId(node.id);
-                setShowTransferModal(true);
-              }}
-              title="Transfer Node"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition text-xs flex items-center gap-1 cursor-pointer"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" />
-            </button>
-            {node.level > 0 && (
+            {canUpdateNode && (
+              <>
+                <button
+                  onClick={() => handleOpenEdit(node)}
+                  title="Edit Node & Role"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition text-xs flex items-center gap-1 cursor-pointer"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedNodeId(node.id);
+                    setShowTransferModal(true);
+                  }}
+                  title="Transfer Node"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition text-xs flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+            {canDeleteNode && node.level > 0 && (
               <button
                 onClick={() => setDeleteConfirmTarget({ id: node.id, name: node.name })}
                 title="Delete Node"
@@ -235,13 +249,20 @@ export const HierarchyTreeView = () => {
           <p className="text-xs text-slate-500 font-medium">Manage multi-tier hierarchical parent-child relationships and assigned roles</p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
-        >
-          <UserPlus className="w-4 h-4" />
-          Add Child Business / User
-        </button>
+        {canCreateNode ? (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add Child Business / User
+          </button>
+        ) : (
+          <div className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+            <Shield className="w-3.5 h-3.5 text-amber-500" />
+            <span>Read-Only Mode ({currentUser?.role?.roleName || 'Restricted'})</span>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -264,22 +285,31 @@ export const HierarchyTreeView = () => {
         </button>
       </div>
 
-      {/* Tab Contents */}
-      {activeTab === 'tree' ? (
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm min-h-[400px]">
-          {treeData.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 text-xs font-medium">
-              No hierarchy nodes found.
-            </div>
-          ) : (
-            treeData.map((rootNode) => renderTreeNode(rootNode))
-          )}
+      {/* Tab: Tree View */}
+      {activeTab === 'tree' && (
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+            {isTreeLoading ? (
+              <div className="text-center py-12 text-slate-400 font-medium text-xs">
+                Loading organizational tree...
+              </div>
+            ) : treeData.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 font-medium text-xs">
+                No hierarchy nodes detected.
+              </div>
+            ) : (
+              <div className="space-y-3">{treeData.map((node) => renderTreeNode(node))}</div>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      )}
+
+      {/* Tab: List View */}
+      {activeTab === 'list' && (
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
                 <tr>
                   <th className="p-3.5">Business / User Name</th>
                   <th className="p-3.5">Email</th>
@@ -291,11 +321,11 @@ export const HierarchyTreeView = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {downlineList.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50/70 transition">
+                  <tr key={item._id} className="hover:bg-slate-50/80 transition">
                     <td className="p-3.5 font-semibold text-slate-900">
                       {item.firstName} {item.lastName}
                     </td>
-                    <td className="p-3.5 text-slate-500 font-medium">{item.email}</td>
+                    <td className="p-3.5 text-slate-500">{item.email}</td>
                     <td className="p-3.5">
                       {item.role?.roleName ? (
                         <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold text-[10px] inline-flex items-center gap-1">
@@ -313,27 +343,36 @@ export const HierarchyTreeView = () => {
                       </span>
                     </td>
                     <td className="p-3.5 text-right space-x-2">
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="text-slate-600 hover:text-slate-900 font-semibold cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedNodeId(item._id);
-                          setShowTransferModal(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
-                      >
-                        Transfer
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirmTarget({ id: item._id, name: `${item.firstName} ${item.lastName}` })}
-                        className="text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
-                      >
-                        Delete
-                      </button>
+                      {canUpdateNode && (
+                        <>
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="text-slate-600 hover:text-slate-900 font-semibold cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedNodeId(item._id);
+                              setShowTransferModal(true);
+                            }}
+                            className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                          >
+                            Transfer
+                          </button>
+                        </>
+                      )}
+                      {canDeleteNode && (
+                        <button
+                          onClick={() => setDeleteConfirmTarget({ id: item._id, name: `${item.firstName} ${item.lastName}` })}
+                          className="text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      )}
+                      {!canUpdateNode && !canDeleteNode && (
+                        <span className="text-slate-400 italic text-[11px]">View Only</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -442,13 +481,16 @@ export const HierarchyTreeView = () => {
               </div>
 
               <div>
-                <label className="text-slate-700 font-semibold block mb-1">Assigned Dynamic Role</label>
+                <label className="text-slate-700 font-semibold block mb-1">
+                  Assigned Dynamic Role <span className="text-rose-500 font-bold">*</span>
+                </label>
                 <select
+                  required
                   value={editForm.role}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
                 >
-                  <option value="">No Role (Default Node)</option>
+                  <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
                   {roles.map((r) => (
                     <option key={r._id} value={r._id}>
                       {r.roleName} ({r.description || 'Custom Permissions'})
@@ -581,19 +623,27 @@ export const HierarchyTreeView = () => {
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Assign Role</label>
+                  <label className="text-slate-700 font-semibold block mb-1">
+                    Assign Dynamic Role <span className="text-rose-500 font-bold">*</span>
+                  </label>
                   <select
+                    required
                     value={childForm.role}
                     onChange={(e) => setChildForm({ ...childForm, role: e.target.value })}
                     className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
                   >
-                    <option value="">Default (No Role)</option>
+                    <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
                     {roles.map((r) => (
                       <option key={r._id} value={r._id}>
                         {r.roleName}
                       </option>
                     ))}
                   </select>
+                  {roles.length === 0 && (
+                    <p className="text-[10px] text-rose-500 mt-1">
+                      No roles available. Please create a role in Dynamic Roles first.
+                    </p>
+                  )}
                 </div>
               </div>
 

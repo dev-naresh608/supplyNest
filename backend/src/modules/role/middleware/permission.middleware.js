@@ -6,25 +6,37 @@ export const checkPermission = (moduleName, action) => {
     const user = req.user;
     if (!user) return next(ApiError.unauthorized('User not authenticated'));
 
-    // Super Admin & Business Owners have full authority over their branch
-    if (user.userType === SYSTEM_USER_TYPES.SUPER_ADMIN || user.userType === SYSTEM_USER_TYPES.BUSINESS) {
+    // Super Admin has master authority across the entire platform
+    if (user.userType === SYSTEM_USER_TYPES.SUPER_ADMIN) {
       return next();
     }
 
-    // Staff Users check dynamic role permissions
-    if (user.userType === SYSTEM_USER_TYPES.STAFF) {
-      if (!user.role || !user.role.permissions) {
-        return next(ApiError.forbidden('No dynamic role or permissions assigned'));
-      }
+    // Map module aliases (e.g. 'hierarchy' corresponds to 'users' permission matrix)
+    const targetModule = moduleName === 'hierarchy' ? 'users' : moduleName;
 
-      const modulePerms = user.role.permissions[moduleName];
-      if (modulePerms && modulePerms[action] === true) {
+    // Check dynamic role permissions assigned to this user
+    if (user.role && user.role.permissions) {
+      const modulePerms = user.role.permissions[targetModule] || user.role.permissions[moduleName];
+      
+      const hasPerm =
+        modulePerms &&
+        (modulePerms[action] === true ||
+          (action === 'update' && modulePerms.edit === true) ||
+          (action === 'edit' && modulePerms.update === true));
+
+      if (hasPerm) {
         return next();
       }
 
-      return next(ApiError.forbidden(`You lack '${action}' permission on '${moduleName}' module`));
+      return next(
+        ApiError.forbidden(
+          `Access Denied: You lack '${action}' permission on '${moduleName}' module (Role: ${user.role.roleName || 'Restricted'})`
+        )
+      );
     }
 
-    return next(ApiError.forbidden('Access denied'));
+    // If user has no dynamic role assigned
+    return next(ApiError.forbidden('Access Denied: No dynamic role or permissions assigned to your account'));
   };
 };
+

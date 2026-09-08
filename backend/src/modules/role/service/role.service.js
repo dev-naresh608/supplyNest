@@ -25,17 +25,34 @@ export class RoleService {
   }
 
   async getBusinessRoles(currentUser, options) {
+    if (currentUser.userType === 'SUPER_ADMIN') {
+      return await this.roleRepo.findAllRoles(options);
+    }
     const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
-    return await this.roleRepo.findByBusiness(businessId, options);
+    const ancestorIds = currentUser.ancestorPath
+      ? currentUser.ancestorPath.split('/').filter(Boolean)
+      : [];
+    const allowedBusinessIds = [businessId, ...ancestorIds];
+    if (currentUser.parentUser) allowedBusinessIds.push(currentUser.parentUser);
+
+    return await this.roleRepo.findByBusiness(allowedBusinessIds, options);
   }
 
   async getRoleById(roleId, currentUser) {
     const role = await this.roleRepo.findById(roleId);
     if (!role) throw ApiError.notFound('Role not found');
 
-    const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
-    if (role.parentBusiness.toString() !== businessId.toString() && currentUser.userType !== 'SUPER_ADMIN') {
-      throw ApiError.forbidden('Access denied to role from another branch');
+    if (currentUser.userType !== 'SUPER_ADMIN') {
+      const businessId = currentUser.userType === 'STAFF' ? currentUser.parentUser : currentUser._id;
+      const ancestorIds = currentUser.ancestorPath
+        ? currentUser.ancestorPath.split('/').filter(Boolean).map(String)
+        : [];
+      const allowedBusinessIds = [businessId.toString(), ...ancestorIds];
+      if (currentUser.parentUser) allowedBusinessIds.push(currentUser.parentUser.toString());
+
+      if (!allowedBusinessIds.includes(role.parentBusiness.toString())) {
+        throw ApiError.forbidden('Access denied to role from another branch');
+      }
     }
     return role;
   }
@@ -70,6 +87,10 @@ export class RoleService {
     const targetUser = await User.findById(targetUserId);
     if (!targetUser || targetUser.isDeleted) throw ApiError.notFound('Target user not found');
 
+    if (!roleId) {
+      throw ApiError.badRequest('A dynamic role is mandatory and cannot be empty');
+    }
+
     // Super Admin or direct/downline parent check
     if (currentUser.userType !== 'SUPER_ADMIN') {
       const isDirectChild = targetUser.parentUser?.toString() === currentUser._id.toString();
@@ -81,12 +102,8 @@ export class RoleService {
       }
     }
 
-    if (roleId) {
-      const role = await this.getRoleById(roleId, currentUser);
-      targetUser.role = role._id;
-    } else {
-      targetUser.role = null;
-    }
+    const role = await this.getRoleById(roleId, currentUser);
+    targetUser.role = role._id;
 
     await targetUser.save();
     return await User.findById(targetUser._id).populate('role', 'roleName permissions');

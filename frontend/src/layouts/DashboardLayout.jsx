@@ -71,7 +71,7 @@ export const DashboardLayout = () => {
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold truncate text-slate-900">{user?.fullName || `${user?.firstName} ${user?.lastName}`}</h4>
             <span className="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80">
-              {user?.userType}
+              {user?.role?.roleName || user?.userType}
             </span>
           </div>
         </div>
@@ -188,7 +188,9 @@ export const DashboardLayout = () => {
             <div className="h-5 w-[1px] bg-slate-200"></div>
             <div className="text-right">
               <div className="text-xs font-semibold text-slate-900">{user?.email}</div>
-              <div className="text-[10px] font-medium text-slate-500">Level {user?.hierarchyLevel ?? 0} Node</div>
+              <div className="text-[10px] font-medium text-slate-500">
+                Level {user?.hierarchyLevel ?? 0} Node {user?.role?.roleName ? `• ${user.role.roleName}` : ''}
+              </div>
             </div>
           </div>
         </header>

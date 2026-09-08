@@ -2,6 +2,7 @@ import { HierarchyRepository } from '../repository/hierarchy.repository.js';
 import { User } from '../../auth/model/User.js';
 import { Session } from '../../auth/model/Session.js';
 import { Inventory } from '../../inventory/model/Inventory.js';
+import { Role } from '../../role/model/Role.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { SYSTEM_USER_TYPES, ACCOUNT_STATUS } from '../../../constants/userRoles.js';
 
@@ -15,7 +16,24 @@ export class HierarchyService {
       throw ApiError.forbidden('Only Super Admin and Business Users can create downline users');
     }
 
-    const existing = await User.findOne({ email: userData.email, isDeleted: false });
+    // Role permission check for non-SuperAdmin
+    if (creatorUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const hasCreatePerm = creatorUser.role?.permissions?.users?.create === true;
+      if (!hasCreatePerm) {
+        throw ApiError.forbidden('You lack permission to create downline business nodes (View Only role)');
+      }
+    }
+
+    if (!userData.role) {
+      throw ApiError.badRequest('A dynamic role is mandatory for all child accounts');
+    }
+
+    const assignedRole = await Role.findById(userData.role);
+    if (!assignedRole || assignedRole.isDeleted) {
+      throw ApiError.badRequest('The assigned dynamic role does not exist or is invalid');
+    }
+
+    const existing = await User.findOne({ email: userData.email.toLowerCase().trim(), isDeleted: false });
     if (existing) {
       throw ApiError.conflict('User with this email already exists');
     }
@@ -26,8 +44,9 @@ export class HierarchyService {
 
     const newUser = new User({
       ...userData,
+      email: userData.email.toLowerCase().trim(),
       userType: userData.userType || SYSTEM_USER_TYPES.BUSINESS,
-      role: userData.role || null,
+      role: assignedRole._id,
       parentUser: creatorUser._id,
       ancestorPath: parentPath,
       hierarchyLevel: creatorUser.hierarchyLevel + 1,
@@ -100,8 +119,15 @@ export class HierarchyService {
     const newParent = await User.findById(newParentId);
     if (!newParent || newParent.isDeleted) throw ApiError.notFound('New parent user not found');
 
-    // Hierarchy boundary security check for non-SuperAdmin
+    // Hierarchy boundary and permission security check for non-SuperAdmin
     if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const hasUpdatePerm =
+        requestingUser.role?.permissions?.users?.update === true ||
+        requestingUser.role?.permissions?.users?.edit === true;
+      if (!hasUpdatePerm) {
+        throw ApiError.forbidden('You lack permission to transfer business nodes');
+      }
+
       const isChildInDownline =
         child.parentUser?.toString() === requestingUser._id.toString() ||
         (child.ancestorPath && child.ancestorPath.includes(requestingUser._id.toString()));
@@ -149,6 +175,13 @@ export class HierarchyService {
     if (!child || child.isDeleted) throw ApiError.notFound('User not found');
 
     if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const hasUpdatePerm =
+        requestingUser.role?.permissions?.users?.update === true ||
+        requestingUser.role?.permissions?.users?.edit === true;
+      if (!hasUpdatePerm) {
+        throw ApiError.forbidden('You lack permission to update business nodes');
+      }
+
       const isChildInDownline =
         child.parentUser?.toString() === requestingUser._id.toString() ||
         (child.ancestorPath && child.ancestorPath.includes(requestingUser._id.toString()));
@@ -191,7 +224,15 @@ export class HierarchyService {
     });
 
     if (updateData.role !== undefined) {
-      child.role = updateData.role ? updateData.role : null;
+      if (updateData.role) {
+        const assignedRole = await Role.findById(updateData.role);
+        if (!assignedRole || assignedRole.isDeleted) {
+          throw ApiError.badRequest('Assigned role does not exist or is invalid');
+        }
+        child.role = assignedRole._id;
+      } else {
+        throw ApiError.badRequest('A dynamic role is mandatory and cannot be empty');
+      }
     }
 
     await child.save();
@@ -203,8 +244,13 @@ export class HierarchyService {
     const child = await User.findById(childId);
     if (!child || child.isDeleted) throw ApiError.notFound('User not found');
 
-    // Hierarchy boundary security check for non-SuperAdmin
+    // Hierarchy boundary and permission security check for non-SuperAdmin
     if (requestingUser.userType !== SYSTEM_USER_TYPES.SUPER_ADMIN) {
+      const hasDeletePerm = requestingUser.role?.permissions?.users?.delete === true;
+      if (!hasDeletePerm) {
+        throw ApiError.forbidden('You lack permission to delete business nodes');
+      }
+
       const isChildInDownline =
         child.parentUser?.toString() === requestingUser._id.toString() ||
         (child.ancestorPath && child.ancestorPath.includes(requestingUser._id.toString()));

@@ -9,7 +9,7 @@ export const createChildSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   userType: z.enum([SYSTEM_USER_TYPES.BUSINESS, SYSTEM_USER_TYPES.STAFF]).optional(),
-  role: z.string().optional(),
+  role: z.string({ required_error: 'A dynamic role is mandatory' }).min(24, 'A dynamic role is mandatory for all child nodes'),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),

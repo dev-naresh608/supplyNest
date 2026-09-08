@@ -4,7 +4,7 @@ import { LoginHistory } from '../model/LoginHistory.js';
 
 export class AuthRepository {
   async findByEmail(email, includePassword = false) {
-    const query = User.findOne({ email, isDeleted: false });
+    const query = User.findOne({ email, isDeleted: false }).populate('role', 'roleName permissions');
     if (includePassword) {
       query.select('+password');
     }
@@ -12,7 +12,7 @@ export class AuthRepository {
   }
 
   async findById(id) {
-    return await User.findById(id).where({ isDeleted: false }).populate('role').exec();
+    return await User.findById(id).where({ isDeleted: false }).populate('role', 'roleName permissions').exec();
   }
 
   async createUser(userData) {

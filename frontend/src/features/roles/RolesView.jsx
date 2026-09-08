@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   useGetRolesQuery,
   useGetRoleStatsQuery,
@@ -8,10 +9,12 @@ import {
   useAssignRoleMutation,
 } from '../../store/api/rolesApi';
 import { useGetDownlineQuery } from '../../store/api/hierarchyApi';
-import { Plus, Copy, X, Trash2, AlertCircle, UserCheck } from 'lucide-react';
+import { hasPermission } from '../../utils/permissionUtils';
+import { Plus, Copy, X, Trash2, AlertCircle, UserCheck, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const RolesView = () => {
+  const { user: currentUser } = useSelector((state) => state.auth);
   const { data: roles = [], isLoading: isRolesLoading } = useGetRolesQuery();
   const { data: stats } = useGetRoleStatsQuery();
   const { data: downlineList = [] } = useGetDownlineQuery();
@@ -19,6 +22,10 @@ export const RolesView = () => {
   const [cloneRoleApi] = useCloneRoleMutation();
   const [deleteRoleApi] = useDeleteRoleMutation();
   const [assignRoleApi, { isLoading: isAssigning }] = useAssignRoleMutation();
+
+  const canCreateRole = hasPermission(currentUser, 'roles', 'create');
+  const canUpdateRole = hasPermission(currentUser, 'roles', 'update');
+  const canDeleteRole = hasPermission(currentUser, 'roles', 'delete');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
@@ -170,13 +177,20 @@ export const RolesView = () => {
           <p className="text-xs text-slate-500 font-medium">Scoped branch roles with fine-grained modular permission matrices</p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Create Branch Role
-        </button>
+        {canCreateRole ? (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Create Branch Role
+          </button>
+        ) : (
+          <div className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+            <Shield className="w-3.5 h-3.5 text-amber-500" />
+            <span>Read-Only Roles ({currentUser?.role?.roleName || 'Restricted'})</span>
+          </div>
+        )}
       </div>
 
       {/* Role Cards */}
@@ -201,31 +215,37 @@ export const RolesView = () => {
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
                 <span>Assigned Users: <strong className="text-slate-800 font-semibold">{role.assignedStaffCount ?? role.assignedUsersCount ?? 0}</strong></span>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setAssignModalRole(role);
-                      setAssignUserId(downlineList[0]?._id || '');
-                    }}
-                    className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
-                    title="Assign to downline users"
-                  >
-                    <UserCheck className="w-3.5 h-3.5" />
-                    Assign
-                  </button>
-                  <button
-                    onClick={() => handleCloneRole(role._id, role.roleName)}
-                    className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer p-1 hover:bg-indigo-50 rounded-lg"
-                    title="Clone role"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirmTarget(role)}
-                    className="text-slate-400 hover:text-rose-600 font-semibold flex items-center gap-1 cursor-pointer transition p-1 hover:bg-rose-50 rounded-lg"
-                    title="Delete role"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {canUpdateRole && (
+                    <button
+                      onClick={() => {
+                        setAssignModalRole(role);
+                        setAssignUserId(downlineList[0]?._id || '');
+                      }}
+                      className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
+                      title="Assign to downline users"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      Assign
+                    </button>
+                  )}
+                  {canCreateRole && (
+                    <button
+                      onClick={() => handleCloneRole(role._id, role.roleName)}
+                      className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer p-1 hover:bg-indigo-50 rounded-lg"
+                      title="Clone role"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {canDeleteRole && (
+                    <button
+                      onClick={() => setDeleteConfirmTarget(role)}
+                      className="text-slate-400 hover:text-rose-600 font-semibold flex items-center gap-1 cursor-pointer transition p-1 hover:bg-rose-50 rounded-lg"
+                      title="Delete role"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

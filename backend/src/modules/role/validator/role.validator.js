@@ -14,7 +14,7 @@ export const cloneRoleSchema = z.object({
 export const assignRoleSchema = z.object({
   userId: z.string().min(24, 'Invalid user ID').optional(),
   staffUserId: z.string().min(24, 'Invalid user ID').optional(),
-  roleId: z.string().nullable().optional(),
+  roleId: z.string({ required_error: 'A dynamic role is mandatory' }).min(24, 'A valid dynamic role is mandatory'),
 });
 
 export const validateRoleReq = (schema) => (req, res, next) => {

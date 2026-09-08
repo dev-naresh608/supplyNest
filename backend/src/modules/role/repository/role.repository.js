@@ -11,8 +11,15 @@ export class RoleRepository {
     return await Role.findById(roleId).where({ isDeleted: false }).exec();
   }
 
-  async findByBusiness(businessId, options = {}) {
-    const query = { parentBusiness: businessId, isDeleted: false };
+  async findAllRoles(options = {}) {
+    const query = { isDeleted: false };
+    if (options.status) query.status = options.status;
+    return await Role.find(query).sort({ roleName: 1 }).exec();
+  }
+
+  async findByBusiness(businessIds, options = {}) {
+    const ids = Array.isArray(businessIds) ? businessIds : [businessIds];
+    const query = { parentBusiness: { $in: ids }, isDeleted: false };
     if (options.status) query.status = options.status;
 
     return await Role.find(query).sort({ roleName: 1 }).exec();

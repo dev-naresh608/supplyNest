@@ -1,5 +1,6 @@
 import { RoleService } from '../service/role.service.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
+import { ApiError } from '../../../utils/ApiError.js';
 
 export class RoleController {
   constructor() {
@@ -56,7 +57,7 @@ export class RoleController {
       const { staffUserId, userId, roleId } = req.body;
       const targetUserId = userId || staffUserId;
       if (!targetUserId) {
-        return ApiResponse.badRequest(res, 'Target user ID is required');
+        throw ApiError.badRequest('Target user ID is required');
       }
       const updatedUser = await this.roleService.assignRoleToUser(targetUserId, roleId, req.user);
       return ApiResponse.success(res, 'Role assignment updated successfully', updatedUser);

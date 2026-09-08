@@ -13,6 +13,7 @@ router.use(protect);
 router.post(
   '/',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  checkPermission('roles', 'create'),
   validateRoleReq(createRoleSchema),
   controller.createRole
 );
@@ -24,28 +25,32 @@ router.get('/:id', checkPermission('roles', 'view'), controller.getRoleById);
 router.put(
   '/:id',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  checkPermission('roles', 'update'),
   controller.updateRole
 );
 
 router.delete(
   '/:id',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  checkPermission('roles', 'delete'),
   controller.deleteRole
 );
 
 router.post(
   '/:id/clone',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  checkPermission('roles', 'create'),
   validateRoleReq(cloneRoleSchema),
   controller.cloneRole
 );
 
-
 router.post(
   '/assign',
   restrictTo(SYSTEM_USER_TYPES.SUPER_ADMIN, SYSTEM_USER_TYPES.BUSINESS),
+  checkPermission('roles', 'update'),
   validateRoleReq(assignRoleSchema),
   controller.assignRole
 );
 
 export default router;
+

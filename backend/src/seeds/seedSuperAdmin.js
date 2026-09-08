@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { User } from '../modules/auth/model/User.js';
 import { Category, Brand } from '../modules/product/model/Category.js';
+import { Role } from '../modules/role/model/Role.js';
 import { SYSTEM_USER_TYPES, ACCOUNT_STATUS } from '../constants/userRoles.js';
 import { ENV } from '../config/env.js';
 import { logger } from '../utils/Logger.js';
@@ -43,9 +44,63 @@ export const seedSuperAdmin = async () => {
     // Seed default brands
     const brandCount = await Brand.countDocuments();
     if (brandCount === 0) {
-      await Brand.create({ name: 'Invora Tech' });
-      await Brand.create({ name: 'Apex Logistics' });
+      await Brand.create({ name: 'Invora Prime' });
+      await Brand.create({ name: 'Nexus Distribution' });
       logger.info('Default brands seeded.');
+    }
+
+    // Seed default roles
+    const roleCount = await Role.countDocuments();
+    if (roleCount === 0) {
+      const fullPermissions = {
+        view: true,
+        create: true,
+        update: true,
+        delete: true,
+        approve: true,
+        reject: true,
+        export: true,
+        import: true,
+        assign: true,
+        transfer: true,
+      };
+
+      await Role.create({
+        roleName: 'Regional Distributor',
+        description: 'Full regional branch distribution and inventory access',
+        parentBusiness: admin._id,
+        createdBy: admin._id,
+        status: 'ACTIVE',
+        permissions: {
+          products: { view: true, create: false, update: false, delete: false, export: true },
+          inventory: fullPermissions,
+          orders: fullPermissions,
+          users: { view: true, create: true, update: true, delete: false, assign: true, transfer: true },
+          reports: { view: true, export: true },
+          revenue: { view: true, export: true },
+          roles: { view: true, create: true, update: true, delete: false },
+          audit: { view: true },
+        },
+      });
+
+      await Role.create({
+        roleName: 'Warehouse Manager',
+        description: 'Stock inward, allocations, dispatch, and damaged reporting',
+        parentBusiness: admin._id,
+        createdBy: admin._id,
+        status: 'ACTIVE',
+        permissions: {
+          products: { view: true, export: true },
+          inventory: { view: true, create: true, update: true, delete: false, approve: false, export: true, assign: true, transfer: true },
+          orders: { view: true, update: true },
+          users: { view: true },
+          reports: { view: true, export: true },
+          revenue: { view: false },
+          roles: { view: false },
+          audit: { view: true },
+        },
+      });
+      logger.info('Default roles seeded.');
     }
 
     logger.info('Seeding completed successfully.');
