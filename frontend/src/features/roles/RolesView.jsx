@@ -307,11 +307,12 @@ export const RolesView = () => {
 
       {/* Create Role Modal with Permission Matrix */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl space-y-6 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 font-['Outfit']">Create Dynamic Branch Role</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-['Outfit']">Create Dynamic Branch Role</h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">Configure access policies and module capabilities</p>
               </div>
               <button
@@ -322,138 +323,141 @@ export const RolesView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateRole} className="space-y-5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Role Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Warehouse Head, Senior Sales"
-                    value={newRoleName}
-                    onChange={(e) => setNewRoleName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Description</label>
-                  <input
-                    type="text"
-                    placeholder="Brief scope of responsibilities"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Matrix Table */}
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* Modal Form & Scrollable Body */}
+            <form onSubmit={handleCreateRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="overflow-y-auto custom-scrollbar p-5 sm:p-8 space-y-5 text-xs flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900">Module Permission Matrix</h4>
-                    <p className="text-[11px] text-slate-500 font-medium">Use checkboxes on individual module rows or action columns to bulk select</p>
+                    <label className="text-slate-700 font-semibold block mb-1">Role Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Warehouse Head, Senior Sales"
+                      value={newRoleName}
+                      onChange={(e) => setNewRoleName(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
                   </div>
-
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => handleSetAllPermissions(true)}
-                      className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-[11px] transition cursor-pointer border border-indigo-200/80"
-                    >
-                      Select All Modules
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSetViewOnly}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition cursor-pointer"
-                    >
-                      View Only
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSetAllPermissions(false)}
-                      className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-[11px] transition cursor-pointer border border-rose-200/80"
-                    >
-                      Clear All
-                    </button>
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Description</label>
+                    <input
+                      type="text"
+                      placeholder="Brief scope of responsibilities"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
                   </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                  <table className="w-full text-left text-xs text-slate-700">
-                    <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="p-3.5">
-                          <div className="flex items-center gap-2">
-                            <span>Module</span>
-                            <span className="text-[9px] text-slate-400 font-normal lowercase">(toggle all)</span>
-                          </div>
-                        </th>
-                        {ACTIONS.map((act) => {
-                          const isColumnAllChecked = MODULES.every((mod) => permissions[mod]?.[act]);
+                {/* Matrix Table */}
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">Module Permission Matrix</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Use checkboxes on individual module rows or action columns to bulk select</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllPermissions(true)}
+                        className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-[11px] transition cursor-pointer border border-indigo-200/80"
+                      >
+                        Select All Modules
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSetViewOnly}
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition cursor-pointer"
+                      >
+                        View Only
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllPermissions(false)}
+                        className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-[11px] transition cursor-pointer border border-rose-200/80"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                    <table className="w-full text-left text-xs text-slate-700">
+                      <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
+                        <tr>
+                          <th className="p-3.5">
+                            <div className="flex items-center gap-2">
+                              <span>Module</span>
+                              <span className="text-[9px] text-slate-400 font-normal lowercase">(toggle all)</span>
+                            </div>
+                          </th>
+                          {ACTIONS.map((act) => {
+                            const isColumnAllChecked = MODULES.every((mod) => permissions[mod]?.[act]);
+                            return (
+                              <th key={act} className="p-3.5 text-center uppercase">
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className="font-bold">{act}</span>
+                                  <input
+                                    type="checkbox"
+                                    checked={isColumnAllChecked}
+                                    onChange={() => handleToggleActionAll(act)}
+                                    className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer rounded"
+                                    title={`Toggle ${act} for all modules`}
+                                  />
+                                </div>
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {MODULES.map((mod) => {
+                          const isRowAllChecked = ACTIONS.every((act) => permissions[mod]?.[act]);
                           return (
-                            <th key={act} className="p-3.5 text-center uppercase">
-                              <div className="flex flex-col items-center gap-1">
-                                <span className="font-bold">{act}</span>
-                                <input
-                                  type="checkbox"
-                                  checked={isColumnAllChecked}
-                                  onChange={() => handleToggleActionAll(act)}
-                                  className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer rounded"
-                                  title={`Toggle ${act} for all modules`}
-                                />
-                              </div>
-                            </th>
+                            <tr key={mod} className={`hover:bg-slate-50/60 transition ${isRowAllChecked ? 'bg-indigo-50/20' : ''}`}>
+                              <td className="p-3.5 font-bold uppercase text-slate-900">
+                                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={isRowAllChecked}
+                                    onChange={() => handleToggleModuleAll(mod)}
+                                    className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
+                                    title={`Select all permissions for ${mod}`}
+                                  />
+                                  <span>{mod}</span>
+                                </label>
+                              </td>
+                              {ACTIONS.map((act) => (
+                                <td key={act} className="p-3.5 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={permissions[mod]?.[act] || false}
+                                    onChange={() => handleTogglePermission(mod, act)}
+                                    className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
                           );
                         })}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {MODULES.map((mod) => {
-                        const isRowAllChecked = ACTIONS.every((act) => permissions[mod]?.[act]);
-                        return (
-                          <tr key={mod} className={`hover:bg-slate-50/60 transition ${isRowAllChecked ? 'bg-indigo-50/20' : ''}`}>
-                            <td className="p-3.5 font-bold uppercase text-slate-900">
-                              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={isRowAllChecked}
-                                  onChange={() => handleToggleModuleAll(mod)}
-                                  className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
-                                  title={`Select all permissions for ${mod}`}
-                                />
-                                <span>{mod}</span>
-                              </label>
-                            </td>
-                            {ACTIONS.map((act) => (
-                              <td key={act} className="p-3.5 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={permissions[mod]?.[act] || false}
-                                  onChange={() => handleTogglePermission(mod, act)}
-                                  className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
-                                />
-                              </td>
-                            ))}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 p-4 sm:px-8 py-3.5 border-t border-slate-100 bg-slate-50/80 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
+                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer shadow-sm transition">
                   Save Role Matrix
                 </button>
               </div>
@@ -464,12 +468,13 @@ export const RolesView = () => {
 
       {/* Assign Role Modal */}
       {assignModalRole && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Assign Role to Business / Staff</h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Role: <span className="text-indigo-600 font-bold">{assignModalRole.roleName}</span>
                 </p>
               </div>
@@ -481,45 +486,49 @@ export const RolesView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleAssignRole} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Target Downline Business / User</label>
-                {downlineList.length === 0 ? (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
-                    No downline business nodes or staff found. Create downline nodes in <strong>Business Hierarchy</strong> first.
-                  </div>
-                ) : (
-                  <select
-                    required
-                    value={assignUserId}
-                    onChange={(e) => setAssignUserId(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  >
-                    {downlineList.map((userNode) => (
-                      <option key={userNode._id} value={userNode._id} className="bg-white text-slate-900">
-                        {userNode.firstName} {userNode.lastName} ({userNode.email}) - Level {userNode.hierarchyLevel} [{userNode.role?.roleName || 'No Role'}]
-                      </option>
-                    ))}
-                  </select>
-                )}
+            {/* Modal Body */}
+            <form onSubmit={handleAssignRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="overflow-y-auto custom-scrollbar p-5 sm:p-6 space-y-4 text-xs flex-1">
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Target Downline Business / User</label>
+                  {downlineList.length === 0 ? (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                      No downline business nodes or staff found. Create downline nodes in <strong>Business Hierarchy</strong> first.
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={assignUserId}
+                      onChange={(e) => setAssignUserId(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    >
+                      {downlineList.map((userNode) => (
+                        <option key={userNode._id} value={userNode._id} className="bg-white text-slate-900">
+                          {userNode.firstName} {userNode.lastName} ({userNode.email}) - Level {userNode.hierarchyLevel} [{userNode.role?.roleName || 'No Role'}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
+                  Assigning this role will apply the modular permissions configured for <strong>{assignModalRole.roleName}</strong> to the selected business/staff node.
+                </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
-                Assigning this role will apply the modular permissions configured for <strong>{assignModalRole.roleName}</strong> to the selected business/staff node.
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 p-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setAssignModalRole(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={downlineList.length === 0 || isAssigning}
-                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer disabled:opacity-50 transition shadow-sm"
                 >
                   {isAssigning ? 'Assigning...' : 'Assign Role'}
                 </button>

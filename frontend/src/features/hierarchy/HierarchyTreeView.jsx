@@ -421,9 +421,10 @@ export const HierarchyTreeView = () => {
 
       {/* Edit Node Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Edit Business Node</h3>
                 <p className="text-xs text-slate-500">Update node contact & profile information</p>
@@ -436,93 +437,96 @@ export const HierarchyTreeView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleUpdateChild} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">First Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.firstName}
-                    onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.lastName}
-                    onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Phone Number</label>
-                <input
-                  type="text"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">City / Region</label>
-                <input
-                  type="text"
-                  value={editForm.city}
-                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">
-                  Assigned Dynamic Role <span className="text-rose-500 font-bold">*</span>
-                </label>
-                <select
-                  required
-                  value={editForm.role}
-                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                >
-                  <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
-                  {roles.map((r) => (
-                    <option key={r._id} value={r._id}>
-                      {r.roleName} ({r.description || 'Custom Permissions'})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Account Status</label>
-                {editForm.id === currentUser?._id || editForm.level === 0 || editForm.userType === 'SUPER_ADMIN' ? (
-                  <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-medium text-xs flex items-center justify-between">
-                    <span className="text-emerald-700 font-bold flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                      ACTIVE (Protected)
-                    </span>
-                    <span className="text-[10px] text-slate-400">Root / Own account cannot be blocked</span>
+            <form onSubmit={handleUpdateChild} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-3.5 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">First Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editForm.firstName}
+                      onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                    />
                   </div>
-                ) : (
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editForm.lastName}
+                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">City / Region</label>
+                  <input
+                    type="text"
+                    value={editForm.city}
+                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">
+                    Assigned Dynamic Role <span className="text-rose-500 font-bold">*</span>
+                  </label>
                   <select
-                    value={editForm.status}
-                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    required
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                     className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
                   >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                    <option value="BLOCKED">BLOCKED</option>
+                    <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
+                    {roles.map((r) => (
+                      <option key={r._id} value={r._id}>
+                        {r.roleName} ({r.description || 'Custom Permissions'})
+                      </option>
+                    ))}
                   </select>
-                )}
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Account Status</label>
+                  {editForm.id === currentUser?._id || editForm.level === 0 || editForm.userType === 'SUPER_ADMIN' ? (
+                    <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-medium text-xs flex items-center justify-between">
+                      <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                        ACTIVE (Protected)
+                      </span>
+                      <span className="text-[10px] text-slate-400">Root / Own account cannot be blocked</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                    >
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="INACTIVE">INACTIVE</option>
+                      <option value="BLOCKED">BLOCKED</option>
+                    </select>
+                  )}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
@@ -545,9 +549,10 @@ export const HierarchyTreeView = () => {
 
       {/* Create Child Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Create Downline Business / User</h3>
                 <p className="text-xs text-slate-500">Register a new child node in your distribution hierarchy</p>
@@ -560,94 +565,97 @@ export const HierarchyTreeView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateChild} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleCreateChild} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-3.5 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">First Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={childForm.firstName}
+                      onChange={(e) => setChildForm({ ...childForm, firstName: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={childForm.lastName}
+                      onChange={(e) => setChildForm({ ...childForm, lastName: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">First Name</label>
+                  <label className="text-slate-700 font-semibold block mb-1">Email Address</label>
                   <input
-                    type="text"
+                    type="email"
                     required
-                    value={childForm.firstName}
-                    onChange={(e) => setChildForm({ ...childForm, firstName: e.target.value })}
+                    value={childForm.email}
+                    onChange={(e) => setChildForm({ ...childForm, email: e.target.value })}
                     className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Last Name</label>
+                  <label className="text-slate-700 font-semibold block mb-1">Password <span className="text-slate-400 text-[10px] font-normal">(min 6 characters)</span></label>
                   <input
-                    type="text"
+                    type="password"
                     required
-                    value={childForm.lastName}
-                    onChange={(e) => setChildForm({ ...childForm, lastName: e.target.value })}
+                    minLength={6}
+                    placeholder="Min 6 characters"
+                    value={childForm.password}
+                    onChange={(e) => setChildForm({ ...childForm, password: e.target.value })}
                     className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={childForm.email}
-                  onChange={(e) => setChildForm({ ...childForm, email: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Node Type</label>
+                    <select
+                      value={childForm.userType}
+                      onChange={(e) => setChildForm({ ...childForm, userType: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
+                    >
+                      <option value="BUSINESS">Business Entity</option>
+                      <option value="STAFF">Staff Member</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Password <span className="text-slate-400 text-[10px] font-normal">(min 6 characters)</span></label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="Min 6 characters"
-                  value={childForm.password}
-                  onChange={(e) => setChildForm({ ...childForm, password: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Node Type</label>
-                  <select
-                    value={childForm.userType}
-                    onChange={(e) => setChildForm({ ...childForm, userType: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
-                  >
-                    <option value="BUSINESS">Business Entity</option>
-                    <option value="STAFF">Staff Member</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">
-                    Assign Dynamic Role <span className="text-rose-500 font-bold">*</span>
-                  </label>
-                  <select
-                    required
-                    value={childForm.role}
-                    onChange={(e) => setChildForm({ ...childForm, role: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
-                  >
-                    <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
-                    {roles.map((r) => (
-                      <option key={r._id} value={r._id}>
-                        {r.roleName}
-                      </option>
-                    ))}
-                  </select>
-                  {roles.length === 0 && (
-                    <p className="text-[10px] text-rose-500 mt-1">
-                      No roles available. Please create a role in Dynamic Roles first.
-                    </p>
-                  )}
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">
+                      Assign Dynamic Role <span className="text-rose-500 font-bold">*</span>
+                    </label>
+                    <select
+                      required
+                      value={childForm.role}
+                      onChange={(e) => setChildForm({ ...childForm, role: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 font-medium"
+                    >
+                      <option value="" disabled>-- Select Mandatory Dynamic Role --</option>
+                      {roles.map((r) => (
+                        <option key={r._id} value={r._id}>
+                          {r.roleName}
+                        </option>
+                      ))}
+                    </select>
+                    {roles.length === 0 && (
+                      <p className="text-[10px] text-rose-500 mt-1">
+                        No roles available. Please create a role in Dynamic Roles first.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -670,9 +678,10 @@ export const HierarchyTreeView = () => {
 
       {/* Transfer Modal */}
       {showTransferModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Transfer Business Node</h3>
                 <p className="text-xs text-slate-500 font-medium">
@@ -687,32 +696,35 @@ export const HierarchyTreeView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleTransferNode} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1.5">Target New Parent Business</label>
-                {downlineList.filter((b) => b._id !== selectedNodeId).length === 0 ? (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
-                    No available downline target businesses to transfer to.
-                  </div>
-                ) : (
-                  <select
-                    required
-                    value={transferParentId}
-                    onChange={(e) => setTransferParentId(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  >
-                    {downlineList
-                      .filter((b) => b._id !== selectedNodeId)
-                      .map((parent) => (
-                        <option key={parent._id} value={parent._id} className="bg-white text-slate-900">
-                          {parent.firstName} {parent.lastName} ({parent.email}) - Level {parent.hierarchyLevel}
-                        </option>
-                      ))}
-                  </select>
-                )}
+            <form onSubmit={handleTransferNode} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4 text-xs">
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1.5">Target New Parent Business</label>
+                  {downlineList.filter((b) => b._id !== selectedNodeId).length === 0 ? (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                      No available downline target businesses to transfer to.
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={transferParentId}
+                      onChange={(e) => setTransferParentId(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    >
+                      {downlineList
+                        .filter((b) => b._id !== selectedNodeId)
+                        .map((parent) => (
+                          <option key={parent._id} value={parent._id} className="bg-white text-slate-900">
+                            {parent.firstName} {parent.lastName} ({parent.email}) - Level {parent.hierarchyLevel}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowTransferModal(false)}

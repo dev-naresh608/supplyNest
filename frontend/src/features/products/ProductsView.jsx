@@ -254,12 +254,13 @@ export const ProductsView = () => {
 
       {/* Categories & Brands Management Modal */}
       {showManageModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white p-6 sm:p-8 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 font-['Outfit']">Catalog Classifications</h3>
-                <p className="text-xs text-slate-500 font-medium">Manage master product categories and authorized brands</p>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-['Outfit']">Catalog Classifications</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Manage master product categories and authorized brands</p>
               </div>
               <button
                 onClick={() => setShowManageModal(false)}
@@ -269,104 +270,119 @@ export const ProductsView = () => {
               </button>
             </div>
 
-            <div className="flex border-b border-slate-100 gap-4 text-xs font-bold">
-              <button
-                onClick={() => setManageTab('categories')}
-                className={`pb-2.5 transition border-b-2 cursor-pointer ${
-                  manageTab === 'categories'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
-                }`}
-              >
-                Categories ({categories.length})
-              </button>
-              <button
-                onClick={() => setManageTab('brands')}
-                className={`pb-2.5 transition border-b-2 cursor-pointer ${
-                  manageTab === 'brands'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
-                }`}
-              >
-                Brands ({brands.length})
-              </button>
+            {/* Modal Body with Custom Scrollbar */}
+            <div className="overflow-y-auto custom-scrollbar p-5 sm:p-6 space-y-5 flex-1">
+              <div className="flex border-b border-slate-100 gap-4 text-xs font-bold">
+                <button
+                  onClick={() => setManageTab('categories')}
+                  className={`pb-2.5 transition border-b-2 cursor-pointer ${
+                    manageTab === 'categories'
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-slate-400 hover:text-slate-700'
+                  }`}
+                >
+                  Categories ({categories.length})
+                </button>
+                <button
+                  onClick={() => setManageTab('brands')}
+                  className={`pb-2.5 transition border-b-2 cursor-pointer ${
+                    manageTab === 'brands'
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-slate-400 hover:text-slate-700'
+                  }`}
+                >
+                  Brands ({brands.length})
+                </button>
+              </div>
+
+              {manageTab === 'categories' ? (
+                <div className="space-y-4">
+                  <form onSubmit={handleCreateCategory} className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="New category name..."
+                      value={newCatName}
+                      onChange={(e) => setNewCatName(e.target.value)}
+                      className="flex-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 transition"
+                    />
+                    <button type="submit" className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold shrink-0 cursor-pointer">
+                      Add
+                    </button>
+                  </form>
+
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-2">
+                    {categories.map((cat) => (
+                      <div key={cat._id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                        <span className="font-semibold text-slate-800">{cat.name}</span>
+                        <button
+                          onClick={() => handleDeleteCategory(cat)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                          title="Delete category"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <form onSubmit={handleCreateBrand} className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="New brand name..."
+                      value={newBrandName}
+                      onChange={(e) => setNewBrandName(e.target.value)}
+                      className="flex-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 transition"
+                    />
+                    <button type="submit" className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold shrink-0 cursor-pointer">
+                      Add
+                    </button>
+                  </form>
+
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-2">
+                    {brands.map((brand) => (
+                      <div key={brand._id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                        <span className="font-semibold text-slate-800">{brand.name}</span>
+                        <button
+                          onClick={() => handleDeleteBrand(brand)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                          title="Delete brand"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {manageTab === 'categories' ? (
-              <div className="space-y-4">
-                <form onSubmit={handleCreateCategory} className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    placeholder="New category name..."
-                    value={newCatName}
-                    onChange={(e) => setNewCatName(e.target.value)}
-                    className="flex-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 transition"
-                  />
-                  <button type="submit" className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold shrink-0 cursor-pointer">
-                    Add
-                  </button>
-                </form>
-
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {categories.map((cat) => (
-                    <div key={cat._id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                      <span className="font-semibold text-slate-800">{cat.name}</span>
-                      <button
-                        onClick={() => handleDeleteCategory(cat)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                        title="Delete category"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <form onSubmit={handleCreateBrand} className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    placeholder="New brand name..."
-                    value={newBrandName}
-                    onChange={(e) => setNewBrandName(e.target.value)}
-                    className="flex-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 transition"
-                  />
-                  <button type="submit" className="px-4 py-2.5 rounded-xl glow-btn text-white text-xs font-semibold shrink-0 cursor-pointer">
-                    Add
-                  </button>
-                </form>
-
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {brands.map((brand) => (
-                    <div key={brand._id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                      <span className="font-semibold text-slate-800">{brand.name}</span>
-                      <button
-                        onClick={() => handleDeleteBrand(brand)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                        title="Delete brand"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 shrink-0 rounded-b-3xl">
+              <button
+                type="button"
+                onClick={() => setShowManageModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Create Product Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 font-['Outfit']">Create Master Product</h3>
-                <p className="text-xs text-slate-500 font-medium">Define root master SKU specifications & baseline pricing</p>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-['Outfit']">Create Master Product</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Define root master SKU specifications & baseline pricing</p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -376,104 +392,108 @@ export const ProductsView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Product Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.productName}
-                    onChange={(e) => setForm({ ...form, productName: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
+            {/* Modal Form & Scrollable Body */}
+            <form onSubmit={handleCreateProduct} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="overflow-y-auto custom-scrollbar p-5 sm:p-6 space-y-3.5 text-xs flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Product Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={form.productName}
+                      onChange={(e) => setForm({ ...form, productName: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">SKU Code</label>
+                    <input
+                      type="text"
+                      required
+                      value={form.sku}
+                      onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">SKU Code</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.sku}
-                    onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Category</label>
+                    <select
+                      required
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    >
+                      <option value="" className="bg-white text-slate-900">Select Category</option>
+                      {categories.map((c) => (
+                        <option key={c._id} value={c._id} className="bg-white text-slate-900">
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Brand</label>
+                    <select
+                      required
+                      value={form.brand}
+                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    >
+                      <option value="" className="bg-white text-slate-900">Select Brand</option>
+                      {brands.map((b) => (
+                        <option key={b._id} value={b._id} className="bg-white text-slate-900">
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Cost Price</label>
+                    <input
+                      type="number"
+                      value={form.costPrice}
+                      onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Selling Price</label>
+                    <input
+                      type="number"
+                      value={form.sellingPrice}
+                      onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-700 font-semibold block mb-1">Initial Stock Qty</label>
+                    <input
+                      type="number"
+                      value={form.initialStockQty}
+                      onChange={(e) => setForm({ ...form, initialStockQty: e.target.value })}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Category</label>
-                  <select
-                    required
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  >
-                    <option value="" className="bg-white text-slate-900">Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c._id} value={c._id} className="bg-white text-slate-900">
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Brand</label>
-                  <select
-                    required
-                    value={form.brand}
-                    onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  >
-                    <option value="" className="bg-white text-slate-900">Select Brand</option>
-                    {brands.map((b) => (
-                      <option key={b._id} value={b._id} className="bg-white text-slate-900">
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Cost Price</label>
-                  <input
-                    type="number"
-                    value={form.costPrice}
-                    onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Selling Price</label>
-                  <input
-                    type="number"
-                    value={form.sellingPrice}
-                    onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Initial Stock Qty</label>
-                  <input
-                    type="number"
-                    value={form.initialStockQty}
-                    onChange={(e) => setForm({ ...form, initialStockQty: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 p-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer">
+                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white text-xs font-semibold cursor-pointer shadow-sm transition">
                   Save Product
                 </button>
               </div>

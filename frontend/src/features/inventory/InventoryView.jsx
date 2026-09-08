@@ -558,9 +558,10 @@ export const InventoryView = () => {
 
       {/* Modal 1: Assign Stock to Downline */}
       {showAssignModal && selectedProduct && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">Assign Stock to Downline</h3>
                 <p className="text-xs text-slate-500 font-medium">
@@ -575,54 +576,57 @@ export const InventoryView = () => {
               </button>
             </div>
 
-            <form onSubmit={handleAssignStock} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Target Downline Business</label>
-                {downlineList.length === 0 ? (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
-                    No downline businesses found. Create a child business node in <strong>Business Hierarchy</strong> first.
-                  </div>
-                ) : (
-                  <select
+            <form onSubmit={handleAssignStock} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4 text-xs">
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Target Downline Business</label>
+                  {downlineList.length === 0 ? (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                      No downline businesses found. Create a child business node in <strong>Business Hierarchy</strong> first.
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={childId}
+                      onChange={(e) => setChildId(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                    >
+                      {downlineList.map((child) => (
+                        <option key={child._id} value={child._id} className="bg-white text-slate-900">
+                          {child.firstName} {child.lastName} ({child.email}) - Level {child.hierarchyLevel}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Quantity to Transfer</label>
+                  <input
+                    type="number"
                     required
-                    value={childId}
-                    onChange={(e) => setChildId(e.target.value)}
+                    min="1"
+                    max={selectedProduct.availableQty}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                  >
-                    {downlineList.map((child) => (
-                      <option key={child._id} value={child._id} className="bg-white text-slate-900">
-                        {child.firstName} {child.lastName} ({child.email}) - Level {child.hierarchyLevel}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Notes / Invoice Ref</label>
+                  <input
+                    type="text"
+                    placeholder="Optional reference note"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Quantity to Transfer</label>
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  max={selectedProduct.availableQty}
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Notes / Invoice Ref</label>
-                <input
-                  type="text"
-                  placeholder="Optional reference note"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowAssignModal(false)}
@@ -645,9 +649,10 @@ export const InventoryView = () => {
 
       {/* Modal 2: Adjust Stock / Request Adjustment */}
       {showAdjustModal && adjustProduct && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">
                   {isSuperAdmin ? 'Direct Stock Adjustment' : 'Request Stock Adjustment'}
@@ -664,67 +669,70 @@ export const InventoryView = () => {
               </button>
             </div>
 
-            {!isSuperAdmin && (
-              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5">
-                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  Downline business stock adjustments require <strong>Super Admin approval</strong>. Once submitted, your request will appear under <em>My Adjustment Requests</em> and stock balances will update upon authorization.
-                </p>
-              </div>
-            )}
+            <form onSubmit={handleAdjustStock} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4 text-xs">
+                {!isSuperAdmin && (
+                  <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">
+                      Downline business stock adjustments require <strong>Super Admin approval</strong>. Once submitted, your request will appear under <em>My Adjustment Requests</em> and stock balances will update upon authorization.
+                    </p>
+                  </div>
+                )}
 
-            <form onSubmit={handleAdjustStock} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Adjustment Type</label>
-                <select
-                  value={adjustType}
-                  onChange={(e) => setAdjustType(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                >
-                  {isSuperAdmin && <option value="STOCK_IN">Stock In (Master Receive)</option>}
-                  <option value="DAMAGE">Mark Damaged (- Deduct)</option>
-                  <option value="RETURN">Return Stock to Parent (- Deduct)</option>
-                  <option value="CORRECTION">Inventory Count Correction</option>
-                  <option value="ADJUSTMENT">Stock Adjustment</option>
-                </select>
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Adjustment Type</label>
+                  <select
+                    value={adjustType}
+                    onChange={(e) => setAdjustType(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                  >
+                    {isSuperAdmin && <option value="STOCK_IN">Stock In (Master Receive)</option>}
+                    <option value="DAMAGE">Mark Damaged (- Deduct)</option>
+                    <option value="RETURN">Return Stock to Parent (- Deduct)</option>
+                    <option value="CORRECTION">Inventory Count Correction</option>
+                    <option value="ADJUSTMENT">Stock Adjustment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max={
+                      adjustType === 'DAMAGE' || adjustType === 'RETURN'
+                        ? adjustProduct.availableQty
+                        : undefined
+                    }
+                    value={adjustQty}
+                    onChange={(e) => setAdjustQty(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">
+                    Reason / Justification {!isSuperAdmin && <span className="text-rose-500">*</span>}
+                  </label>
+                  <textarea
+                    required={!isSuperAdmin}
+                    rows={2}
+                    placeholder={
+                      isSuperAdmin
+                        ? 'Optional administrative adjustment note'
+                        : 'Provide clear justification for Super Admin review (e.g. 2 units found damaged in transit)'
+                    }
+                    value={adjustNotes}
+                    onChange={(e) => setAdjustNotes(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">Quantity</label>
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  max={
-                    adjustType === 'DAMAGE' || adjustType === 'RETURN'
-                      ? adjustProduct.availableQty
-                      : undefined
-                  }
-                  value={adjustQty}
-                  onChange={(e) => setAdjustQty(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">
-                  Reason / Justification {!isSuperAdmin && <span className="text-rose-500">*</span>}
-                </label>
-                <textarea
-                  required={!isSuperAdmin}
-                  rows={2}
-                  placeholder={
-                    isSuperAdmin
-                      ? 'Optional administrative adjustment note'
-                      : 'Provide clear justification for Super Admin review (e.g. 2 units found damaged in transit)'
-                  }
-                  value={adjustNotes}
-                  onChange={(e) => setAdjustNotes(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition font-medium"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowAdjustModal(false)}
@@ -751,9 +759,10 @@ export const InventoryView = () => {
 
       {/* Modal 3: Super Admin Review & Approval */}
       {selectedRequestToReview && (
-        <div className="fixed inset-0 z-[110] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white p-6 sm:p-8 rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl space-y-4 my-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[110] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            {/* Modal Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Outfit']">
                   {reviewAction === 'APPROVE' ? 'Authorize Stock Adjustment' : 'Reject Stock Adjustment'}
@@ -770,45 +779,48 @@ export const InventoryView = () => {
               </button>
             </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Product:</span>
-                <strong className="text-slate-900">{selectedRequestToReview.productId?.productName}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Adjustment Type:</span>
-                <span className="font-bold text-indigo-700">{selectedRequestToReview.type}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Requested Quantity:</span>
-                <strong className="text-slate-900">{selectedRequestToReview.quantity} Pcs</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Requester Reason:</span>
-                <span className="text-slate-700 font-medium">{selectedRequestToReview.reason || '-'}</span>
-              </div>
-            </div>
+            <form onSubmit={handleExecuteReview} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4 text-xs">
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Product:</span>
+                    <strong className="text-slate-900">{selectedRequestToReview.productId?.productName}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Adjustment Type:</span>
+                    <span className="font-bold text-indigo-700">{selectedRequestToReview.type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Requested Quantity:</span>
+                    <strong className="text-slate-900">{selectedRequestToReview.quantity} Pcs</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Requester Reason:</span>
+                    <span className="text-slate-700 font-medium">{selectedRequestToReview.reason || '-'}</span>
+                  </div>
+                </div>
 
-            <form onSubmit={handleExecuteReview} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-700 font-semibold block mb-1">
-                  {reviewAction === 'APPROVE' ? 'Approval Note (Optional)' : 'Rejection Reason'}
-                </label>
-                <input
-                  type="text"
-                  required={reviewAction === 'REJECT'}
-                  placeholder={
-                    reviewAction === 'APPROVE'
-                      ? 'Optional note for ledger logs'
-                      : 'Provide reason for rejecting this adjustment request'
-                  }
-                  value={reviewNotes}
-                  onChange={(e) => setReviewNotes(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
-                />
+                <div>
+                  <label className="text-slate-700 font-semibold block mb-1">
+                    {reviewAction === 'APPROVE' ? 'Approval Note (Optional)' : 'Rejection Reason'}
+                  </label>
+                  <input
+                    type="text"
+                    required={reviewAction === 'REJECT'}
+                    placeholder={
+                      reviewAction === 'APPROVE'
+                        ? 'Optional note for ledger logs'
+                        : 'Provide reason for rejecting this adjustment request'
+                    }
+                    value={reviewNotes}
+                    onChange={(e) => setReviewNotes(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 transition font-medium"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {/* Modal Fixed Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setSelectedRequestToReview(null)}
