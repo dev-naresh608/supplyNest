@@ -87,7 +87,7 @@ export const cleanAndSeedDb = async () => {
       transfer: true,
     };
 
-    const regionalDistRole = await Role.create({
+    await Role.create({
       roleName: 'Regional Distributor',
       description: 'Full regional branch distribution and inventory access',
       parentBusiness: superAdmin._id,
@@ -105,7 +105,7 @@ export const cleanAndSeedDb = async () => {
       },
     });
 
-    const warehouseRole = await Role.create({
+    await Role.create({
       roleName: 'Warehouse Manager',
       description: 'Stock inward, allocations, dispatch, and damaged reporting',
       parentBusiness: superAdmin._id,
@@ -123,7 +123,7 @@ export const cleanAndSeedDb = async () => {
       },
     });
 
-    const retailPartnerRole = await Role.create({
+    await Role.create({
       roleName: 'Retail Partner',
       description: 'Retail branch inventory tracking and sales',
       parentBusiness: superAdmin._id,

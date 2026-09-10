@@ -70,7 +70,8 @@ export class InventoryController {
       const { id } = req.params;
       const { action, reviewNotes } = req.body;
       const updated = await this.inventoryService.reviewAdjustmentRequest(req.user, id, action, reviewNotes);
-      return ApiResponse.success(res, `Stock adjustment request ${action.toLowerCase()}ed successfully`, updated);
+      const actionText = action === 'APPROVE' ? 'approved' : 'rejected';
+      return ApiResponse.success(res, `Stock adjustment request ${actionText} successfully`, updated);
     } catch (error) {
       next(error);
     }

@@ -13,19 +13,7 @@ import { RevenueView } from '../features/revenue/RevenueView';
 import { SessionManagerView } from '../features/auth/SessionManagerView';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, isInitialized } = useSelector((state) => state.auth);
-  const { isLoading } = useGetProfileQuery(undefined, {
-    skip: !!user, // Skip if already populated in store
-  });
-
-  if (!isInitialized && isLoading) {
-    return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center text-slate-600 text-sm gap-3">
-        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-medium text-slate-600">Authenticating Invora Session...</p>
-      </div>
-    );
-  }
+  const { user } = useSelector((state) => state.auth);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -43,6 +31,20 @@ const PublicRoute = ({ children }) => {
 };
 
 export const AppRoutes = () => {
+  const { user, isInitialized } = useSelector((state) => state.auth);
+  const { isLoading } = useGetProfileQuery(undefined, {
+    skip: isInitialized || !!user,
+  });
+
+  if (!isInitialized && isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center text-slate-600 text-sm gap-3">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-medium text-slate-600">Authenticating Invora Session...</p>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route

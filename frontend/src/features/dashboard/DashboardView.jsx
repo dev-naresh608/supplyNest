@@ -19,7 +19,7 @@ export const DashboardView = () => {
   const kpis = [
     {
       label: 'Direct Children',
-      value: stats?.directChildren ?? 0,
+      value: isStatsLoading ? '...' : (stats?.directChildren ?? 0),
       icon: Building,
       badgeBg: 'bg-blue-50',
       iconColor: 'text-blue-600',
@@ -27,7 +27,7 @@ export const DashboardView = () => {
     },
     {
       label: 'Total Downline Network',
-      value: stats?.totalDescendants ?? 0,
+      value: isStatsLoading ? '...' : (stats?.totalDescendants ?? 0),
       icon: GitFork,
       badgeBg: 'bg-purple-50',
       iconColor: 'text-purple-600',
@@ -35,7 +35,7 @@ export const DashboardView = () => {
     },
     {
       label: 'Active Network Branches',
-      value: stats?.activeDescendants ?? 0,
+      value: isStatsLoading ? '...' : (stats?.activeDescendants ?? 0),
       icon: Users,
       badgeBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
@@ -113,7 +113,11 @@ export const DashboardView = () => {
           </span>
         </div>
 
-        {alerts.length === 0 ? (
+        {isAlertsLoading ? (
+          <div className="text-center py-10 text-xs font-medium text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+            Checking low stock alerts...
+          </div>
+        ) : alerts.length === 0 ? (
           <div className="text-center py-10 text-xs font-medium text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
             All inventory levels are optimal. No low stock warnings.
           </div>

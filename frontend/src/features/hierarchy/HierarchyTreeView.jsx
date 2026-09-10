@@ -18,7 +18,6 @@ import {
   Trash2,
   Edit2,
   X,
-  Layers,
   AlertCircle,
   Shield,
 } from 'lucide-react';
@@ -320,7 +319,20 @@ export const HierarchyTreeView = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {downlineList.map((item) => (
+                {isDownlineLoading ? (
+                  <tr>
+                    <td colSpan="6" className="p-8 text-center text-slate-400 font-medium">
+                      Loading downline businesses...
+                    </td>
+                  </tr>
+                ) : downlineList.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="p-8 text-center text-slate-400 font-medium">
+                      No downline business nodes found.
+                    </td>
+                  </tr>
+                ) : (
+                  downlineList.map((item) => (
                   <tr key={item._id} className="hover:bg-slate-50/80 transition">
                     <td className="p-3.5 font-semibold text-slate-900">
                       {item.firstName} {item.lastName}
@@ -375,7 +387,8 @@ export const HierarchyTreeView = () => {
                       )}
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -734,10 +747,10 @@ export const HierarchyTreeView = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={downlineList.filter((b) => b._id !== selectedNodeId).length === 0}
+                  disabled={downlineList.filter((b) => b._id !== selectedNodeId).length === 0 || isTransferring}
                   className="px-5 py-2 rounded-xl glow-btn text-white font-semibold disabled:opacity-50 cursor-pointer"
                 >
-                  Confirm Node Transfer
+                  {isTransferring ? 'Transferring Node...' : 'Confirm Node Transfer'}
                 </button>
               </div>
             </form>

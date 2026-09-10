@@ -17,10 +17,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Building2,
-  AlertTriangle,
-  Layers,
-  History,
   ShieldAlert,
   Search,
 } from 'lucide-react';
@@ -239,7 +235,11 @@ export const InventoryView = () => {
       {/* TAB 1: My Stock */}
       {activeTab === 'stock' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {stockItems.length === 0 ? (
+          {isStockLoading ? (
+            <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
+              Loading inventory stock...
+            </div>
+          ) : stockItems.length === 0 ? (
             <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
               No inventory stock items found.
             </div>
@@ -342,7 +342,13 @@ export const InventoryView = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredNetworkStock.length === 0 ? (
+                  {isNetworkStockLoading ? (
+                    <tr>
+                      <td colSpan="7" className="p-8 text-center text-slate-400 font-medium">
+                        Loading network stock distribution...
+                      </td>
+                    </tr>
+                  ) : filteredNetworkStock.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="p-8 text-center text-slate-400 font-medium">
                         No downline stock allocations found.
@@ -407,14 +413,20 @@ export const InventoryView = () => {
                   {isSuperAdmin && <th className="p-3.5 text-right">Review Action</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {adjustmentRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
-                      No stock adjustment requests submitted yet.
-                    </td>
-                  </tr>
-                ) : (
+                <tbody className="divide-y divide-slate-100">
+                  {isRequestsLoading ? (
+                    <tr>
+                      <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
+                        Loading stock adjustment requests...
+                      </td>
+                    </tr>
+                  ) : adjustmentRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
+                        No stock adjustment requests submitted yet.
+                      </td>
+                    </tr>
+                  ) : (
                   adjustmentRequests.map((req) => (
                     <tr key={req._id} className="hover:bg-slate-50/70 transition">
                       <td className="p-3.5 font-semibold text-slate-900">
@@ -520,7 +532,13 @@ export const InventoryView = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {history.length === 0 ? (
+                {isHistoryLoading ? (
+                  <tr>
+                    <td colSpan="8" className="p-8 text-center text-slate-400 font-medium">
+                      Loading transaction ledger history...
+                    </td>
+                  </tr>
+                ) : history.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="p-8 text-center text-slate-400 font-medium">
                       No stock transactions recorded yet.

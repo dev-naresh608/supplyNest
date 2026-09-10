@@ -1,9 +1,6 @@
 import { Inventory } from '../model/Inventory.js';
 import { StockTransaction } from '../model/StockTransaction.js';
 import { StockAdjustmentRequest } from '../model/StockAdjustmentRequest.js';
-import { Category, Brand } from '../../product/model/Category.js';
-import { Product } from '../../product/model/Product.js';
-import { User } from '../../auth/model/User.js';
 
 export class InventoryRepository {
   async findStock(ownerId, productId) {

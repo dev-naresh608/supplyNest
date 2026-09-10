@@ -37,7 +37,7 @@ export class InventoryService {
     try {
       session = await mongoose.startSession();
       session.startTransaction();
-    } catch (sessionErr) {
+    } catch {
       useTransaction = false;
       if (session) session.endSession();
       session = null;
@@ -79,7 +79,7 @@ export class InventoryService {
           try {
             await session.abortTransaction();
             session.endSession();
-          } catch (e) {}
+          } catch {}
         }
 
         // Sequential atomic operations without session

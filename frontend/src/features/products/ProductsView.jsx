@@ -11,7 +11,7 @@ import {
   useDeleteBrandMutation,
 } from '../../store/api/productsApi';
 import { useSelector } from 'react-redux';
-import { Package, Plus, X, Tag, Trash2, Layers, Award, AlertCircle } from 'lucide-react';
+import { Package, Plus, X, Trash2, Layers, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const ProductsView = () => {
@@ -168,7 +168,11 @@ export const ProductsView = () => {
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {products.length === 0 ? (
+        {isProductsLoading ? (
+          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
+            Loading master products catalog...
+          </div>
+        ) : products.length === 0 ? (
           <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
             No master products registered in catalog.
           </div>
@@ -493,8 +497,12 @@ export const ProductsView = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white text-xs font-semibold cursor-pointer shadow-sm transition">
-                  Save Product
+                <button
+                  type="submit"
+                  disabled={isCreatingProduct}
+                  className="px-5 py-2 rounded-xl glow-btn text-white text-xs font-semibold cursor-pointer shadow-sm transition disabled:opacity-50"
+                >
+                  {isCreatingProduct ? 'Saving Product...' : 'Save Product'}
                 </button>
               </div>
             </form>

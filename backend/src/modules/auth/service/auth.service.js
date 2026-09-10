@@ -1,7 +1,7 @@
 import { AuthRepository } from '../repository/auth.repository.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../../utils/TokenUtils.js';
-import { SYSTEM_USER_TYPES, ACCOUNT_STATUS } from '../../../constants/userRoles.js';
+import { ACCOUNT_STATUS } from '../../../constants/userRoles.js';
 import useragent from 'useragent';
 
 export class AuthService {
@@ -118,7 +118,7 @@ export class AuthService {
     let decoded;
     try {
       decoded = verifyRefreshToken(token);
-    } catch (err) {
+    } catch {
       throw ApiError.unauthorized('Invalid or expired refresh token');
     }
 

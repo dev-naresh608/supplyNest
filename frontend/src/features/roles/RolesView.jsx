@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   useGetRolesQuery,
-  useGetRoleStatsQuery,
   useCreateRoleMutation,
   useCloneRoleMutation,
   useDeleteRoleMutation,
@@ -16,7 +15,6 @@ import toast from 'react-hot-toast';
 export const RolesView = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
   const { data: roles = [], isLoading: isRolesLoading } = useGetRolesQuery();
-  const { data: stats } = useGetRoleStatsQuery();
   const { data: downlineList = [] } = useGetDownlineQuery();
   const [createRoleApi, { isLoading: isCreating }] = useCreateRoleMutation();
   const [cloneRoleApi] = useCloneRoleMutation();
@@ -195,7 +193,11 @@ export const RolesView = () => {
 
       {/* Role Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {roles.length === 0 ? (
+        {isRolesLoading ? (
+          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
+            Loading dynamic branch roles...
+          </div>
+        ) : roles.length === 0 ? (
           <div className="col-span-full text-center py-12 px-6 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
               <Shield className="w-6 h-6" />
@@ -361,10 +363,10 @@ export const RolesView = () => {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => handleSetAllPermissions(true)}
+                        onClick={() => handleSetAllPermissions(!isEverythingSelected)}
                         className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-[11px] transition cursor-pointer border border-indigo-200/80"
                       >
-                        Select All Modules
+                        {isEverythingSelected ? 'Deselect All Modules' : 'Select All Modules'}
                       </button>
                       <button
                         type="button"
@@ -457,8 +459,12 @@ export const RolesView = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer shadow-sm transition">
-                  Save Role Matrix
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-5 py-2 rounded-xl glow-btn text-white font-semibold cursor-pointer shadow-sm transition disabled:opacity-50"
+                >
+                  {isCreating ? 'Saving Role...' : 'Save Role Matrix'}
                 </button>
               </div>
             </form>

@@ -43,6 +43,9 @@ const roleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-roleSchema.index({ parentBusiness: 1, roleName: 1 }, { unique: true });
+roleSchema.index(
+  { parentBusiness: 1, roleName: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
+);
 
 export const Role = mongoose.model('Role', roleSchema);

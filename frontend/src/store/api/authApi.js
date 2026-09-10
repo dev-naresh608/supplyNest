@@ -11,7 +11,7 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(setUserProfile(data));
-        } catch (err) {
+        } catch {
           dispatch(setUserProfile(null));
         } finally {
           dispatch(setInitialized(true));
@@ -38,7 +38,7 @@ export const authApi = apiSlice.injectEndpoints({
               })
             );
           }
-        } catch (err) {
+        } catch {
           // Handled in component
         }
       },

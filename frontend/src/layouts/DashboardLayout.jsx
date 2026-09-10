@@ -29,7 +29,7 @@ export const DashboardLayout = () => {
     try {
       await logoutApi().unwrap();
       toast.success('Logged out successfully');
-    } catch (e) {
+    } catch {
       // Ignored
     } finally {
       navigate('/login');

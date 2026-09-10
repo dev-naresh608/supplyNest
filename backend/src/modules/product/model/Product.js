@@ -16,14 +16,12 @@ const productSchema = new mongoose.Schema(
     sku: {
       type: String,
       required: true,
-      unique: true,
       uppercase: true,
       trim: true,
       index: true,
     },
     barcode: {
       type: String,
-      unique: true,
       sparse: true,
       trim: true,
       default: undefined,
@@ -82,5 +80,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+productSchema.index({ sku: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+productSchema.index({ barcode: 1 }, { unique: true, sparse: true, partialFilterExpression: { isDeleted: false } });
 
 export const Product = mongoose.model("Product", productSchema);

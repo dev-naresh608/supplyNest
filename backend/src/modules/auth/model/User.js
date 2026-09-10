@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+    email: { type: String, required: true, lowercase: true, trim: true, index: true },
     phone: { type: String, trim: true, index: true },
     password: { type: String, required: true, select: false },
     profilePhoto: { type: String, default: '' },
@@ -64,8 +64,11 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+
 userSchema.virtual('fullName').get(function () {
-  return `${this.firstName} ${this.lastName}`.trim();
+  if (!this.firstName && !this.lastName) return '';
+  return `${this.firstName || ''} ${this.lastName || ''}`.trim();
 });
 
 userSchema.pre('save', async function (next) {

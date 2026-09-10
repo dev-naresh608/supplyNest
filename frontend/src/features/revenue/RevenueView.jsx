@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGetRevenueQuery } from '../../store/api/revenueApi';
-import { TrendingUp, DollarSign } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 export const RevenueView = () => {
   const { data = { items: [], totalRevenue: 0 }, isLoading } = useGetRevenueQuery();
@@ -49,7 +49,13 @@ export const RevenueView = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.items.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="p-6 text-center text-slate-400 font-medium">
+                    Loading revenue records...
+                  </td>
+                </tr>
+              ) : data.items.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="p-6 text-center text-slate-400 font-medium">
                     No revenue transactions logged yet.
