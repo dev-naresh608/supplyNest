@@ -67,9 +67,9 @@ export const DashboardView = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              Live Node Active
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 text-xs font-semibold">
+              <ShieldCheck className="w-4 h-4 text-purple-600" />
+              Role: {user?.role?.roleName || (user?.userType === 'SUPER_ADMIN' ? 'Super Admin' : user?.userType?.replace('_', ' ') || 'User')}
             </span>
           </div>
         </div>
