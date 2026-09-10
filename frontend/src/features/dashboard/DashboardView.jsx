@@ -98,7 +98,7 @@ export const DashboardView = () => {
 
       {/* Low Stock Alert Section */}
       <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
               <AlertTriangle className="w-5 h-5" />
@@ -108,7 +108,7 @@ export const DashboardView = () => {
               <p className="text-xs text-slate-500">Items nearing critical threshold</p>
             </div>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 self-start sm:self-auto">
             {alerts.length} Items Below Threshold
           </span>
         </div>
