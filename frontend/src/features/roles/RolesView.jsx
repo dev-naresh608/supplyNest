@@ -11,6 +11,7 @@ import { useGetDownlineQuery } from '../../store/api/hierarchyApi';
 import { hasPermission } from '../../utils/permissionUtils';
 import { Plus, Copy, X, Trash2, AlertCircle, UserCheck, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GridSkeleton } from '../../components/common/Skeletons';
 
 export const RolesView = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
@@ -192,12 +193,11 @@ export const RolesView = () => {
       </div>
 
       {/* Role Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {isRolesLoading ? (
-          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
-            Loading dynamic branch roles...
-          </div>
-        ) : roles.length === 0 ? (
+      {isRolesLoading ? (
+        <GridSkeleton count={6} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {roles.length === 0 ? (
           <div className="col-span-full text-center py-12 px-6 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
               <Shield className="w-6 h-6" />
@@ -269,6 +269,7 @@ export const RolesView = () => {
           ))
         )}
       </div>
+      )}
 
       {/* Delete Role Confirmation Modal */}
       {deleteConfirmTarget && (

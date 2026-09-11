@@ -13,6 +13,7 @@ import {
 import { useSelector } from 'react-redux';
 import { Package, Plus, X, Trash2, Layers, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GridSkeleton } from '../../components/common/Skeletons';
 
 export const ProductsView = () => {
   const { user } = useSelector((state) => state.auth);
@@ -167,12 +168,11 @@ export const ProductsView = () => {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {isProductsLoading ? (
-          <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
-            Loading master products catalog...
-          </div>
-        ) : products.length === 0 ? (
+      {isProductsLoading ? (
+        <GridSkeleton count={6} height="h-64" />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {products.length === 0 ? (
           <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
             No master products registered in catalog.
           </div>
@@ -218,6 +218,7 @@ export const ProductsView = () => {
           ))
         )}
       </div>
+      )}
 
       {/* Delete Product Confirmation Modal */}
       {deleteConfirmTarget && (

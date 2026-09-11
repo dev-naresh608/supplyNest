@@ -23,6 +23,7 @@ import {
   Inbox,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ListSkeleton } from '../../components/common/Skeletons';
 import {
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
@@ -368,10 +369,7 @@ export const NotificationsView = () => {
       {/* Notifications Feed */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-            <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-xs font-medium">Fetching notifications...</span>
-          </div>
+          <ListSkeleton count={5} />
         ) : notifications.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200/90 p-16 flex flex-col items-center justify-center text-center">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">

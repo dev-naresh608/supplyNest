@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useLogoutMutation } from '../store/api/authApi';
 import { useGetUnreadCountQuery } from '../store/api/notificationApi';
 import { NotificationDropdown } from '../features/notifications/components/NotificationDropdown';
+import { LoadingBar } from '../components/common/LoadingBar';
 import {
   LayoutDashboard,
   GitFork,
@@ -55,6 +56,7 @@ export const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col md:flex-row antialiased selection:bg-indigo-100 selection:text-indigo-900">
+      <LoadingBar />
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-72 bg-white border-r border-slate-200/90 p-5 sticky top-0 h-screen z-30 shrink-0 shadow-[2px_0_12px_-4px_rgba(15,23,42,0.03)]">
         {/* Brand */}

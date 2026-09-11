@@ -21,6 +21,7 @@ import {
   Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GridSkeleton, TableSkeleton } from '../../components/common/Skeletons';
 
 export const InventoryView = () => {
   const { user } = useSelector((state) => state.auth);
@@ -234,17 +235,17 @@ export const InventoryView = () => {
 
       {/* TAB 1: My Stock */}
       {activeTab === 'stock' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div>
           {isStockLoading ? (
-            <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
-              Loading inventory stock...
-            </div>
-          ) : stockItems.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
-              No inventory stock items found.
-            </div>
+            <GridSkeleton count={6} height="h-56" />
           ) : (
-            stockItems.map((item) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {stockItems.length === 0 ? (
+                <div className="col-span-full text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-3xl border border-slate-200">
+                  No inventory stock items found.
+                </div>
+              ) : (
+                stockItems.map((item) => (
               <div
                 key={item._id}
                 className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 space-y-4"
@@ -305,6 +306,8 @@ export const InventoryView = () => {
               </div>
             ))
           )}
+            </div>
+          )}
         </div>
       )}
 
@@ -327,35 +330,32 @@ export const InventoryView = () => {
             </span>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="p-3.5">Business / Node</th>
-                    <th className="p-3.5">Hierarchy Level</th>
-                    <th className="p-3.5">Product & SKU</th>
-                    <th className="p-3.5">Available Stock</th>
-                    <th className="p-3.5">Reserved</th>
-                    <th className="p-3.5">Damaged</th>
-                    <th className="p-3.5 text-right">Last Updated</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {isNetworkStockLoading ? (
+          {isNetworkStockLoading ? (
+            <TableSkeleton rows={6} cols={7} />
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-400 font-medium">
-                        Loading network stock distribution...
-                      </td>
+                      <th className="p-3.5">Business / Node</th>
+                      <th className="p-3.5">Hierarchy Level</th>
+                      <th className="p-3.5">Product & SKU</th>
+                      <th className="p-3.5">Available Stock</th>
+                      <th className="p-3.5">Reserved</th>
+                      <th className="p-3.5">Damaged</th>
+                      <th className="p-3.5 text-right">Last Updated</th>
                     </tr>
-                  ) : filteredNetworkStock.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-400 font-medium">
-                        No downline stock allocations found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredNetworkStock.map((inv) => (
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredNetworkStock.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="p-8 text-center text-slate-400 font-medium">
+                          No downline stock allocations found.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredNetworkStock.map((inv) => (
                       <tr key={inv._id} className="hover:bg-slate-50/70 transition">
                         <td className="p-3.5 font-semibold text-slate-900">
                           <div>
@@ -393,41 +393,40 @@ export const InventoryView = () => {
               </table>
             </div>
           </div>
+          )}
         </div>
       )}
 
       {/* TAB 3: Adjustment Approvals / My Adjustment Requests */}
       {activeTab === 'requests' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
-                <tr>
-                  <th className="p-3.5">Requester Business</th>
-                  <th className="p-3.5">Product & SKU</th>
-                  <th className="p-3.5">Adjustment Type</th>
-                  <th className="p-3.5">Quantity</th>
-                  <th className="p-3.5">Reason / Justification</th>
-                  <th className="p-3.5">Status</th>
-                  <th className="p-3.5">Date</th>
-                  {isSuperAdmin && <th className="p-3.5 text-right">Review Action</th>}
-                </tr>
-              </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {isRequestsLoading ? (
+        <div>
+          {isRequestsLoading ? (
+            <TableSkeleton rows={6} cols={isSuperAdmin ? 8 : 7} />
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
                     <tr>
-                      <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
-                        Loading stock adjustment requests...
-                      </td>
+                      <th className="p-3.5">Requester Business</th>
+                      <th className="p-3.5">Product & SKU</th>
+                      <th className="p-3.5">Adjustment Type</th>
+                      <th className="p-3.5">Quantity</th>
+                      <th className="p-3.5">Reason / Justification</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5">Date</th>
+                      {isSuperAdmin && <th className="p-3.5 text-right">Review Action</th>}
                     </tr>
-                  ) : adjustmentRequests.length === 0 ? (
-                    <tr>
-                      <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
-                        No stock adjustment requests submitted yet.
-                      </td>
-                    </tr>
-                  ) : (
-                  adjustmentRequests.map((req) => (
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {adjustmentRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-400 font-medium">
+                          No stock adjustment requests submitted yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      adjustmentRequests.map((req) => (
                     <tr key={req._id} className="hover:bg-slate-50/70 transition">
                       <td className="p-3.5 font-semibold text-slate-900">
                         <div>
@@ -512,40 +511,40 @@ export const InventoryView = () => {
             </table>
           </div>
         </div>
+        )}
+      </div>
       )}
 
       {/* TAB 4: Transaction History */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
-                <tr>
-                  <th className="p-3.5">Product</th>
-                  <th className="p-3.5">From Business</th>
-                  <th className="p-3.5">To Business</th>
-                  <th className="p-3.5">Transaction Type</th>
-                  <th className="p-3.5">Quantity</th>
-                  <th className="p-3.5">Authorized By</th>
-                  <th className="p-3.5">Notes</th>
-                  <th className="p-3.5 text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {isHistoryLoading ? (
-                  <tr>
-                    <td colSpan="8" className="p-8 text-center text-slate-400 font-medium">
-                      Loading transaction ledger history...
-                    </td>
-                  </tr>
-                ) : history.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="p-8 text-center text-slate-400 font-medium">
-                      No stock transactions recorded yet.
-                    </td>
-                  </tr>
-                ) : (
-                  history.map((tx) => (
+        <div>
+          {isHistoryLoading ? (
+            <TableSkeleton rows={6} cols={8} />
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="p-3.5">Product</th>
+                      <th className="p-3.5">From Business</th>
+                      <th className="p-3.5">To Business</th>
+                      <th className="p-3.5">Transaction Type</th>
+                      <th className="p-3.5">Quantity</th>
+                      <th className="p-3.5">Authorized By</th>
+                      <th className="p-3.5">Notes</th>
+                      <th className="p-3.5 text-right">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {history.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" className="p-8 text-center text-slate-400 font-medium">
+                          No stock transactions recorded yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      history.map((tx) => (
                     <tr key={tx._id} className="hover:bg-slate-50/70 transition">
                       <td className="p-3.5 font-semibold text-slate-900">{tx.productId?.productName}</td>
                       <td className="p-3.5 text-slate-500 font-medium">
@@ -572,6 +571,8 @@ export const InventoryView = () => {
             </table>
           </div>
         </div>
+        )}
+      </div>
       )}
 
       {/* Modal 1: Assign Stock to Downline */}

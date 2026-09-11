@@ -22,6 +22,7 @@ import {
   Shield,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { TreeSkeleton, TableSkeleton } from '../../components/common/Skeletons';
 
 export const HierarchyTreeView = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
@@ -290,53 +291,51 @@ export const HierarchyTreeView = () => {
       {/* Tab: Tree View */}
       {activeTab === 'tree' && (
         <div className="space-y-4">
-          <div className="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-x-auto custom-scrollbar">
-            {isTreeLoading ? (
-              <div className="text-center py-12 text-slate-400 font-medium text-xs">
-                Loading organizational tree...
-              </div>
-            ) : treeData.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 font-medium text-xs">
-                No hierarchy nodes detected.
-              </div>
-            ) : (
-              <div className="space-y-3 min-w-[280px]">{treeData.map((node) => renderTreeNode(node, true))}</div>
-            )}
-          </div>
+          {isTreeLoading ? (
+            <TreeSkeleton />
+          ) : (
+            <div className="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-x-auto custom-scrollbar">
+              {treeData.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 font-medium text-xs">
+                  No hierarchy nodes detected.
+                </div>
+              ) : (
+                <div className="space-y-3 min-w-[280px]">{treeData.map((node) => renderTreeNode(node, true))}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* Tab: List View */}
       {activeTab === 'list' && (
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs min-w-[620px]">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="p-3.5">Business / User Name</th>
-                  <th className="p-3.5">Email</th>
-                  <th className="p-3.5">Assigned Role</th>
-                  <th className="p-3.5">Level</th>
-                  <th className="p-3.5">Status</th>
-                  <th className="p-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {isDownlineLoading ? (
-                  <tr>
-                    <td colSpan="6" className="p-8 text-center text-slate-400 font-medium">
-                      Loading downline businesses...
-                    </td>
-                  </tr>
-                ) : downlineList.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="p-8 text-center text-slate-400 font-medium">
-                      No downline business nodes found.
-                    </td>
-                  </tr>
-                ) : (
-                  downlineList.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50/80 transition">
+        <div>
+          {isDownlineLoading ? (
+            <TableSkeleton rows={5} cols={6} />
+          ) : (
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left text-xs min-w-[620px]">
+                  <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th className="p-3.5">Business / User Name</th>
+                      <th className="p-3.5">Email</th>
+                      <th className="p-3.5">Assigned Role</th>
+                      <th className="p-3.5">Level</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {downlineList.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="p-8 text-center text-slate-400 font-medium">
+                          No downline business nodes found.
+                        </td>
+                      </tr>
+                    ) : (
+                      downlineList.map((item) => (
+                        <tr key={item._id} className="hover:bg-slate-50/80 transition">
                     <td className="p-3.5 font-semibold text-slate-900">
                       {item.firstName} {item.lastName}
                     </td>
@@ -396,6 +395,8 @@ export const HierarchyTreeView = () => {
             </table>
           </div>
         </div>
+        )}
+      </div>
       )}
 
       {/* Delete Confirmation Modal */}

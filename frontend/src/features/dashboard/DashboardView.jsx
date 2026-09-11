@@ -9,17 +9,17 @@ import {
   Building,
   AlertTriangle,
 } from 'lucide-react';
+import { CardSkeleton, ListSkeleton } from '../../components/common/Skeletons';
 
 export const DashboardView = () => {
   const { user } = useSelector((state) => state.auth);
   const { data: stats, isLoading: isStatsLoading } = useGetHierarchyStatsQuery();
   const { data: alerts = [], isLoading: isAlertsLoading } = useGetLowStockAlertsQuery();
 
-
   const kpis = [
     {
       label: 'Direct Children',
-      value: isStatsLoading ? '...' : (stats?.directChildren ?? 0),
+      value: stats?.directChildren ?? 0,
       icon: Building,
       badgeBg: 'bg-blue-50',
       iconColor: 'text-blue-600',
@@ -27,7 +27,7 @@ export const DashboardView = () => {
     },
     {
       label: 'Total Downline Network',
-      value: isStatsLoading ? '...' : (stats?.totalDescendants ?? 0),
+      value: stats?.totalDescendants ?? 0,
       icon: GitFork,
       badgeBg: 'bg-purple-50',
       iconColor: 'text-purple-600',
@@ -35,7 +35,7 @@ export const DashboardView = () => {
     },
     {
       label: 'Active Network Branches',
-      value: isStatsLoading ? '...' : (stats?.activeDescendants ?? 0),
+      value: stats?.activeDescendants ?? 0,
       icon: Users,
       badgeBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
@@ -76,25 +76,29 @@ export const DashboardView = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpis.map((kpi, idx) => {
-          const Icon = kpi.icon;
-          return (
-            <div
-              key={idx}
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 font-semibold">{kpi.label}</span>
-                <div className={`p-2.5 rounded-xl ${kpi.badgeBg} ${kpi.iconColor}`}>
-                  <Icon className="w-5 h-5" />
+      {isStatsLoading ? (
+        <CardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {kpis.map((kpi, idx) => {
+            const Icon = kpi.icon;
+            return (
+              <div
+                key={idx}
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 font-semibold">{kpi.label}</span>
+                  <div className={`p-2.5 rounded-xl ${kpi.badgeBg} ${kpi.iconColor}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
                 </div>
+                <div className="text-3xl font-bold text-slate-900 mt-4 font-['Outfit']">{kpi.value}</div>
               </div>
-              <div className="text-3xl font-bold text-slate-900 mt-4 font-['Outfit']">{kpi.value}</div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Low Stock Alert Section */}
       <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
@@ -114,9 +118,7 @@ export const DashboardView = () => {
         </div>
 
         {isAlertsLoading ? (
-          <div className="text-center py-10 text-xs font-medium text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
-            Checking low stock alerts...
-          </div>
+          <ListSkeleton count={3} />
         ) : alerts.length === 0 ? (
           <div className="text-center py-10 text-xs font-medium text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
             All inventory levels are optimal. No low stock warnings.

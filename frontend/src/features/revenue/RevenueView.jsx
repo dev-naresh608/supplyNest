@@ -1,10 +1,10 @@
 import React from 'react';
 import { useGetRevenueQuery } from '../../store/api/revenueApi';
 import { TrendingUp } from 'lucide-react';
+import { TableSkeleton } from '../../components/common/Skeletons';
 
 export const RevenueView = () => {
   const { data = { items: [], totalRevenue: 0 }, isLoading } = useGetRevenueQuery();
-
 
   return (
     <div className="space-y-6">
@@ -23,19 +23,26 @@ export const RevenueView = () => {
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
-        <div className="text-3xl sm:text-4xl font-bold text-emerald-700 mt-3 font-['Outfit']">
-          ₹{data.totalRevenue.toLocaleString()}
-        </div>
+        {isLoading ? (
+          <div className="h-10 w-32 bg-emerald-100/70 rounded-xl shimmer-bg mt-3" />
+        ) : (
+          <div className="text-3xl sm:text-4xl font-bold text-emerald-700 mt-3 font-['Outfit']">
+            ₹{data.totalRevenue.toLocaleString()}
+          </div>
+        )}
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">Settled Margin Ledger</h3>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-            {data.items.length} Transactions
-          </span>
-        </div>
+      {isLoading ? (
+        <TableSkeleton rows={5} cols={6} />
+      ) : (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">Settled Margin Ledger</h3>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              {data.items.length} Transactions
+            </span>
+          </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700">
             <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
@@ -83,6 +90,7 @@ export const RevenueView = () => {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

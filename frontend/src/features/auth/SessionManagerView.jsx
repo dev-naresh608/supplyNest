@@ -6,6 +6,7 @@ import {
 } from '../../store/api/authApi';
 import { Monitor, Smartphone, LogOut, Clock, ShieldAlert, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GridSkeleton } from '../../components/common/Skeletons';
 
 export const SessionManagerView = () => {
   const { data: sessions = [], isLoading, isError } = useGetSessionsQuery();
@@ -52,11 +53,7 @@ export const SessionManagerView = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {[1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 border border-slate-200 animate-pulse h-32" />
-          ))}
-        </div>
+        <GridSkeleton count={2} height="h-36" />
       ) : isError ? (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center text-rose-700 text-xs font-semibold flex items-center justify-center gap-2">
           <ShieldAlert className="w-4 h-4" />
