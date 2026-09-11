@@ -3,12 +3,14 @@ import { User } from '../../auth/model/User.js';
 import { Session } from '../../auth/model/Session.js';
 import { Inventory } from '../../inventory/model/Inventory.js';
 import { Role } from '../../role/model/Role.js';
+import { NotificationService } from '../../notification/service/notification.service.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { SYSTEM_USER_TYPES, ACCOUNT_STATUS } from '../../../constants/userRoles.js';
 
 export class HierarchyService {
   constructor() {
     this.hierarchyRepo = new HierarchyRepository();
+    this.notificationService = new NotificationService();
   }
 
   async createChildUser(creatorUser, userData) {
@@ -63,7 +65,19 @@ export class HierarchyService {
     });
 
     const saved = await newUser.save();
-    return await User.findById(saved._id).populate('role', 'roleName permissions');
+    const populated = await User.findById(saved._id).populate('role', 'roleName permissions');
+
+    // Notify newly provisioned child user
+    this.notificationService
+      .notifyChildCreated({
+        creator: creatorUser,
+        childId: saved._id,
+        childName: `${saved.firstName} ${saved.lastName}`.trim(),
+        roleName: assignedRole.roleName,
+      })
+      .catch(() => {});
+
+    return populated;
   }
 
   async getTree(currentUser) {
@@ -174,6 +188,16 @@ export class HierarchyService {
 
     // Update all downline descendants
     await this.hierarchyRepo.updateDescendantPaths(oldPrefix, newPrefix, levelDiff);
+
+    // Notify child user and new parent
+    this.notificationService
+      .notifyNodeTransferred({
+        childId: child._id,
+        newParentId: newParent._id,
+        childName: `${child.firstName} ${child.lastName}`.trim(),
+        newParentName: `${newParent.firstName} ${newParent.lastName}`.trim(),
+      })
+      .catch(() => {});
 
     return child;
   }

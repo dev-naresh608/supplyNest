@@ -63,6 +63,8 @@ export const apiSlice = createApi({
     'Revenue',
     'Sessions',
     'StockRequests',
+    'Notifications',
+    'UnreadCount',
   ],
   endpoints: () => ({}),
 });

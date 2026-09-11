@@ -1,12 +1,15 @@
 import mongoose from 'mongoose';
 import { InventoryRepository } from '../repository/inventory.repository.js';
 import { User } from '../../auth/model/User.js';
+import { Product } from '../../product/model/Product.js';
+import { NotificationService } from '../../notification/service/notification.service.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { STOCK_TRANSACTION_TYPES, SYSTEM_USER_TYPES } from '../../../constants/userRoles.js';
 
 export class InventoryService {
   constructor() {
     this.inventoryRepo = new InventoryRepository();
+    this.notificationService = new NotificationService();
   }
 
   async assignStock(parentUser, childId, productId, quantity, notes = '') {
@@ -71,6 +74,46 @@ export class InventoryService {
         session.endSession();
       }
 
+      // Trigger Stock Allocation Notification to Child
+      Product.findById(productId)
+        .select('productName sku')
+        .then((prod) => {
+          if (prod) {
+            this.notificationService.notifyStockAssigned({
+              sender: parentUser,
+              recipientId: child._id,
+              productName: prod.productName,
+              sku: prod.sku,
+              quantity,
+              notes,
+            });
+          }
+        })
+        .catch(() => {});
+
+      // Check Low Stock for Parent User
+      this.inventoryRepo
+        .findStock(parentUser._id, productId)
+        .then((parentStock) => {
+          if (parentStock && parentStock.availableQty <= 5) {
+            Product.findById(productId)
+              .select('productName sku minStockThreshold')
+              .then((prod) => {
+                if (prod) {
+                  this.notificationService.notifyLowStockAlert({
+                    ownerId: parentUser._id,
+                    productName: prod.productName,
+                    sku: prod.sku,
+                    currentStock: parentStock.availableQty,
+                    minStockThreshold: prod.minStockThreshold || 5,
+                  });
+                }
+              })
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
+
       return transaction;
     } catch (err) {
       // Fallback for standalone MongoDB instances without replica set support
@@ -85,7 +128,7 @@ export class InventoryService {
         // Sequential atomic operations without session
         await this.inventoryRepo.upsertStock(parentUser._id, productId, -quantity, 0, 0, null);
         await this.inventoryRepo.upsertStock(child._id, productId, quantity, 0, 0, null);
-        return await this.inventoryRepo.createTransaction(
+        const fallbackTransaction = await this.inventoryRepo.createTransaction(
           {
             productId,
             fromOwnerId: parentUser._id,
@@ -97,6 +140,25 @@ export class InventoryService {
           },
           null
         );
+
+        // Trigger notification in fallback mode
+        Product.findById(productId)
+          .select('productName sku')
+          .then((prod) => {
+            if (prod) {
+              this.notificationService.notifyStockAssigned({
+                sender: parentUser,
+                recipientId: child._id,
+                productName: prod.productName,
+                sku: prod.sku,
+                quantity,
+                notes,
+              });
+            }
+          })
+          .catch(() => {});
+
+        return fallbackTransaction;
       }
 
       if (useTransaction && session) {
@@ -137,6 +199,27 @@ export class InventoryService {
         type,
         reason: notes,
       });
+
+      // Notify all Super Admins about pending adjustment request
+      User.find({ userType: SYSTEM_USER_TYPES.SUPER_ADMIN, isDeleted: false })
+        .select('_id')
+        .then(async (superAdmins) => {
+          const adminIds = superAdmins.map((a) => a._id);
+          const prod = await Product.findById(productId).select('productName sku');
+          if (adminIds.length > 0 && prod) {
+            this.notificationService.notifyAdjustmentRequested({
+              requester: currentUser,
+              superAdminIds: adminIds,
+              productName: prod.productName,
+              sku: prod.sku,
+              quantity,
+              type,
+              reason: notes,
+              requestId: request._id,
+            });
+          }
+        })
+        .catch(() => {});
 
       return {
         isPendingApproval: true,
@@ -215,12 +298,31 @@ export class InventoryService {
     }
 
     if (action === 'REJECT') {
-      return await this.inventoryRepo.updateAdjustmentRequest(requestId, {
+      const updated = await this.inventoryRepo.updateAdjustmentRequest(requestId, {
         status: 'REJECTED',
         reviewedBy: superAdminUser._id,
         reviewNotes: reviewNotes || 'Rejected by Super Admin',
         reviewedAt: new Date(),
       });
+
+      Product.findById(request.productId)
+        .select('productName sku')
+        .then((prod) => {
+          const requesterId = request.requesterId._id || request.requesterId;
+          this.notificationService.notifyAdjustmentReviewed({
+            reviewer: superAdminUser,
+            requesterId,
+            productName: prod ? prod.productName : 'Product',
+            sku: prod ? prod.sku : '',
+            quantity: request.quantity,
+            action: 'REJECT',
+            reviewNotes: reviewNotes || 'Rejected by Super Admin',
+            requestId,
+          });
+        })
+        .catch(() => {});
+
+      return updated;
     }
 
     if (action !== 'APPROVE') {
@@ -270,12 +372,30 @@ export class InventoryService {
     });
 
     // Update Request status
-    return await this.inventoryRepo.updateAdjustmentRequest(requestId, {
+    const updated = await this.inventoryRepo.updateAdjustmentRequest(requestId, {
       status: 'APPROVED',
       reviewedBy: superAdminUser._id,
       reviewNotes,
       reviewedAt: new Date(),
     });
+
+    Product.findById(productId)
+      .select('productName sku')
+      .then((prod) => {
+        this.notificationService.notifyAdjustmentReviewed({
+          reviewer: superAdminUser,
+          requesterId,
+          productName: prod ? prod.productName : 'Product',
+          sku: prod ? prod.sku : '',
+          quantity,
+          action: 'APPROVE',
+          reviewNotes,
+          requestId,
+        });
+      })
+      .catch(() => {});
+
+    return updated;
   }
 
   async getNetworkStock(superAdminUser, options = {}) {

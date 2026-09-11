@@ -11,6 +11,7 @@ import { ProductsView } from '../features/products/ProductsView';
 import { InventoryView } from '../features/inventory/InventoryView';
 import { RevenueView } from '../features/revenue/RevenueView';
 import { SessionManagerView } from '../features/auth/SessionManagerView';
+import { NotificationsView } from '../features/notifications/NotificationsView';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -72,6 +73,7 @@ export const AppRoutes = () => {
         <Route path="inventory" element={<InventoryView />} />
         <Route path="revenue" element={<RevenueView />} />
         <Route path="sessions" element={<SessionManagerView />} />
+        <Route path="notifications" element={<NotificationsView />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

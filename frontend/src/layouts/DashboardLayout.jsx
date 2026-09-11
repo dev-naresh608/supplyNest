@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useLogoutMutation } from '../store/api/authApi';
+import { useGetUnreadCountQuery } from '../store/api/notificationApi';
+import { NotificationDropdown } from '../features/notifications/components/NotificationDropdown';
 import {
   LayoutDashboard,
   GitFork,
@@ -22,6 +24,9 @@ import toast from 'react-hot-toast';
 export const DashboardLayout = () => {
   const { user } = useSelector((state) => state.auth);
   const [logoutApi] = useLogoutMutation();
+  const { data: unreadCount = 0 } = useGetUnreadCountQuery(undefined, {
+    pollingInterval: 15000,
+  });
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -39,6 +44,7 @@ export const DashboardLayout = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'Notifications', path: '/notifications', icon: Bell, badge: unreadCount },
     { label: 'Business Hierarchy', path: '/hierarchy', icon: GitFork },
     { label: 'Dynamic Roles', path: '/roles', icon: ShieldCheck },
     { label: 'Master Products', path: '/products', icon: Package },
@@ -85,15 +91,22 @@ export const DashboardLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/25 font-semibold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge > 0 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-500 text-white shadow-xs">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -118,10 +131,7 @@ export const DashboardLayout = () => {
           <span className="font-bold text-lg text-slate-900 font-['Outfit']">INVORA</span>
         </div>
         <div className="flex items-center gap-2">
-          <button className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
-          </button>
+          <NotificationDropdown isMobile={true} />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
@@ -164,13 +174,20 @@ export const DashboardLayout = () => {
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                      `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
                         isActive ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
                       }`
                     }
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge > 0 && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-500 text-white">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
                   </NavLink>
                 );
               })}
@@ -205,10 +222,7 @@ export const DashboardLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-600 transition cursor-pointer">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white animate-pulse"></span>
-            </button>
+            <NotificationDropdown />
             <div className="h-5 w-[1px] bg-slate-200"></div>
             <div className="text-right">
               <div className="text-xs font-semibold text-slate-900">{user?.email}</div>

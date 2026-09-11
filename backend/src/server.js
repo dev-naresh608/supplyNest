@@ -15,6 +15,7 @@ import roleRoutes from './modules/role/routes/role.routes.js';
 import productRoutes from './modules/product/routes/product.routes.js';
 import inventoryRoutes from './modules/inventory/routes/inventory.routes.js';
 import revenueRoutes from './modules/revenue/routes/revenue.routes.js';
+import notificationRoutes from './modules/notification/routes/notification.routes.js';
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use('/api/v1/roles', roleRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/revenue', revenueRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
