@@ -32,10 +32,10 @@ export const RevenueView = () => {
         )}
       </div>
 
-      {/* Transactions Table */}
+      {/* Transactions Table - only shown when there are items */}
       {isLoading ? (
         <TableSkeleton rows={5} cols={6} />
-      ) : (
+      ) : data?.items?.length > 0 ? (
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900">Settled Margin Ledger</h3>
@@ -43,33 +43,20 @@ export const RevenueView = () => {
               {data.items.length} Transactions
             </span>
           </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
-              <tr>
-                <th className="p-3.5">Source Downline</th>
-                <th className="p-3.5">Product</th>
-                <th className="p-3.5">Margin Rate</th>
-                <th className="p-3.5">Revenue Earned</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-700">
+              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
                 <tr>
-                  <td colSpan="6" className="p-6 text-center text-slate-400 font-medium">
-                    Loading revenue records...
-                  </td>
+                  <th className="p-3.5">Source Downline</th>
+                  <th className="p-3.5">Product</th>
+                  <th className="p-3.5">Margin Rate</th>
+                  <th className="p-3.5">Revenue Earned</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5">Date</th>
                 </tr>
-              ) : data.items.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="p-6 text-center text-slate-400 font-medium">
-                    No revenue transactions logged yet.
-                  </td>
-                </tr>
-              ) : (
-                data.items.map((tx) => (
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.items.map((tx) => (
                   <tr key={tx._id} className="hover:bg-slate-50/70 transition">
                     <td className="p-3.5 font-semibold text-slate-900">
                       {tx.sourceUserId?.firstName} {tx.sourceUserId?.lastName}
@@ -84,13 +71,12 @@ export const RevenueView = () => {
                     </td>
                     <td className="p-3.5 text-slate-500 font-medium">{new Date(tx.createdAt).toLocaleDateString()}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-      )}
+      ) : null}
     </div>
   );
 };
