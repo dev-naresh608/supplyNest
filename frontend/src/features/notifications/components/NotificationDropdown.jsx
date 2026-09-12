@@ -106,9 +106,9 @@ export const NotificationDropdown = ({ isMobile = false }) => {
     pollingInterval: 15000,
   });
 
-  // Query notifications with active tab filter
+  // Query notifications with active tab filter (dropdown shows max 3 items)
   const filterParams = {
-    limit: 8,
+    limit: 3,
     ...(activeTab === 'UNREAD' ? { isRead: 'false' } : {}),
     ...(activeTab === 'INVENTORY' ? { category: 'INVENTORY' } : {}),
     ...(activeTab === 'APPROVALS' ? { category: 'APPROVALS' } : {}),
@@ -123,7 +123,7 @@ export const NotificationDropdown = ({ isMobile = false }) => {
   const [markAllAsRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
-  const notifications = notificationsData?.items || [];
+  const notifications = (notificationsData?.items || []).slice(0, 3);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -213,7 +213,7 @@ export const NotificationDropdown = ({ isMobile = false }) => {
         <div
           className={`absolute ${
             isMobile ? 'right-0 w-[calc(100vw-2rem)] max-w-sm' : 'right-0 w-96'
-          } mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}
+          } mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col max-h-[calc(100vh-5.5rem)]`}
         >
           {/* Header */}
           <div className="p-3.5 px-4 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-100 flex items-center justify-between">
@@ -264,7 +264,7 @@ export const NotificationDropdown = ({ isMobile = false }) => {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
+          <div className="max-h-[290px] overflow-y-auto divide-y divide-slate-100 flex-1">
             {isFetching && notifications.length === 0 ? (
               <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
                 <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
