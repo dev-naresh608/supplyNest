@@ -115,9 +115,7 @@ export const NotificationsView = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Unread badge count query
-  const { data: unreadCount = 0 } = useGetUnreadCountQuery(undefined, {
-    pollingInterval: 10000,
-  });
+  const { data: unreadCount = 0 } = useGetUnreadCountQuery();
 
   const queryParams = {
     page: currentPage,
@@ -129,9 +127,7 @@ export const NotificationsView = () => {
     ...(searchQuery.trim() ? { search: searchQuery.trim() } : {}),
   };
 
-  const { data, isLoading, isFetching, refetch } = useGetNotificationsQuery(queryParams, {
-    pollingInterval: 15000,
-  });
+  const { data, isLoading, isFetching, refetch } = useGetNotificationsQuery(queryParams);
 
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();
@@ -242,7 +238,7 @@ export const NotificationsView = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Total Logged</span>
@@ -272,16 +268,6 @@ export const NotificationsView = () => {
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2 font-['Outfit']">
             {meta.page || 1} <span className="text-sm font-normal text-slate-400">/ {meta.totalPages || 1}</span>
-          </p>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Sync Status</span>
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          </div>
-          <p className="text-xs font-semibold text-emerald-600 mt-3 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Live Polling (15s)
           </p>
         </div>
       </div>

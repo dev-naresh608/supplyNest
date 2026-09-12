@@ -116,7 +116,6 @@ export const NotificationDropdown = ({ isMobile = false }) => {
 
   const { data: notificationsData, isFetching } = useGetNotificationsQuery(filterParams, {
     skip: !isOpen,
-    pollingInterval: isOpen ? 15000 : 0,
   });
 
   const [markAsRead] = useMarkAsReadMutation();
@@ -362,7 +361,7 @@ export const NotificationDropdown = ({ isMobile = false }) => {
 
           {/* Footer */}
           <div className="p-2.5 px-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-slate-500">Real-time sync active</span>
+            <span className="text-[11px] text-slate-500">Recent notifications</span>
             <button
               type="button"
               onClick={() => {
