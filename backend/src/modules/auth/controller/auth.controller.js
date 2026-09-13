@@ -95,6 +95,16 @@ export class AuthController {
     }
   };
 
+  changePassword = async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      await this.authService.changePassword(req.user._id, currentPassword, newPassword);
+      return ApiResponse.success(res, 'Password changed successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getSessions = async (req, res, next) => {
     try {
       const sessions = await this.authService.getActiveSessions(req.user._id);

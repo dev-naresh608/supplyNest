@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   Building2,
+  UserCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -52,6 +53,7 @@ export const DashboardLayout = () => {
     { label: 'Inventory Ledger', path: '/inventory', icon: Boxes },
     { label: 'Revenue Engine', path: '/revenue', icon: TrendingUp },
     { label: 'Sessions & Security', path: '/sessions', icon: Monitor },
+    { label: 'My Profile', path: '/profile', icon: UserCircle },
   ];
 
   return (
@@ -71,18 +73,23 @@ export const DashboardLayout = () => {
         </div>
 
         {/* User Profile Summary Card */}
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 mb-6 flex items-center gap-3 shadow-xs">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0">
+        <NavLink
+          to="/profile"
+          className="bg-slate-50 hover:bg-slate-100/90 border border-slate-200/80 rounded-2xl p-3.5 mb-6 flex items-center gap-3 shadow-xs transition group cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0 group-hover:scale-105 transition-transform">
             {user?.firstName?.[0] || 'U'}
             {user?.lastName?.[0] || ''}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold truncate text-slate-900">{user?.fullName || `${user?.firstName} ${user?.lastName}`}</h4>
+            <h4 className="text-sm font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">
+              {user?.fullName || `${user?.firstName} ${user?.lastName}`}
+            </h4>
             <span className="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80">
               {user?.role?.roleName || user?.userType}
             </span>
           </div>
-        </div>
+        </NavLink>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
@@ -153,7 +160,11 @@ export const DashboardLayout = () => {
           />
           <div className="md:hidden fixed top-14 left-0 right-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto bg-white border-b border-slate-200 p-4 space-y-2 z-50 shadow-2xl">
             {/* User Profile Summary Card */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3">
+            <NavLink
+              to="/profile"
+              onClick={() => setMobileMenuOpen(false)}
+              className="bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3 transition cursor-pointer"
+            >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
                 {user?.firstName?.[0] || 'U'}
                 {user?.lastName?.[0] || ''}
@@ -165,7 +176,7 @@ export const DashboardLayout = () => {
                   Level {user?.hierarchyLevel ?? 0} Node {user?.role?.roleName ? `• ${user.role.roleName}` : ''}
                 </span>
               </div>
-            </div>
+            </NavLink>
 
             <div className="space-y-1 pt-1">
               {navItems.map((item) => {
@@ -226,12 +237,24 @@ export const DashboardLayout = () => {
           <div className="flex items-center gap-4">
             <NotificationDropdown />
             <div className="h-5 w-[1px] bg-slate-200"></div>
-            <div className="text-right">
-              <div className="text-xs font-semibold text-slate-900">{user?.email}</div>
-              <div className="text-[10px] font-medium text-slate-500">
-                Level {user?.hierarchyLevel ?? 0} Node {user?.role?.roleName ? `• ${user.role.roleName}` : ''}
+            <NavLink
+              to="/profile"
+              className="flex items-center gap-3 hover:opacity-90 transition cursor-pointer group"
+              title="View & Edit Profile"
+            >
+              <div className="text-right">
+                <div className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  {user?.fullName || user?.email}
+                </div>
+                <div className="text-[10px] font-medium text-slate-500">
+                  Level {user?.hierarchyLevel ?? 0} Node {user?.role?.roleName ? `• ${user.role.roleName}` : ''}
+                </div>
               </div>
-            </div>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-xs group-hover:ring-2 group-hover:ring-indigo-400/50 transition">
+                {user?.firstName?.[0] || 'U'}
+                {user?.lastName?.[0] || ''}
+              </div>
+            </NavLink>
           </div>
         </header>
 

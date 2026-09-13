@@ -7,15 +7,29 @@ export const loginSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  firstName: z.string().min(2).optional(),
-  lastName: z.string().min(2).optional(),
+  firstName: z.string().min(2, 'First name must be at least 2 characters').optional(),
+  lastName: z.string().min(1, 'Last name is required').optional(),
   phone: z.string().optional(),
+  profilePhoto: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   country: z.string().optional(),
   pincode: z.string().optional(),
+  timezone: z.string().optional(),
+  language: z.string().optional(),
 });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+    confirmPassword: z.string().min(1, 'Password confirmation is required'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'New password and confirm password do not match',
+    path: ['confirmPassword'],
+  });
 
 export const validate = (schema) => (req, res, next) => {
   try {

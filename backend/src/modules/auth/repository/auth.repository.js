@@ -12,7 +12,11 @@ export class AuthRepository {
   }
 
   async findById(id) {
-    return await User.findById(id).where({ isDeleted: false }).populate('role', 'roleName permissions').exec();
+    return await User.findById(id)
+      .where({ isDeleted: false })
+      .populate('role', 'roleName permissions description')
+      .populate('parentUser', 'firstName lastName email userType')
+      .exec();
   }
 
   async createUser(userData) {
@@ -21,7 +25,10 @@ export class AuthRepository {
   }
 
   async updateUser(id, updateData) {
-    return await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    return await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+      .populate('role', 'roleName permissions description')
+      .populate('parentUser', 'firstName lastName email userType')
+      .exec();
   }
 
   async createSession(sessionData) {

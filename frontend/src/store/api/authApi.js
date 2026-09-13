@@ -84,6 +84,25 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Auth'],
       transformResponse: (response) => response?.data || null,
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data) {
+            dispatch(setUserProfile(data));
+          }
+        } catch {
+          // Handled in component
+        }
+      },
+    }),
+
+    changePassword: builder.mutation({
+      query: (passwords) => ({
+        url: '/auth/change-password',
+        method: 'PUT',
+        body: passwords,
+      }),
+      transformResponse: (response) => response?.data || null,
     }),
 
     getSessions: builder.query({
@@ -109,6 +128,7 @@ export const {
   useLogoutMutation,
   useLogoutAllMutation,
   useUpdateProfileMutation,
+  useChangePasswordMutation,
   useGetSessionsQuery,
   useRevokeSessionMutation,
 } = authApi;

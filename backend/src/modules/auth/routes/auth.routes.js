@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controller/auth.controller.js';
-import { validate, loginSchema, updateProfileSchema } from '../validator/auth.validator.js';
+import { validate, loginSchema, updateProfileSchema, changePasswordSchema } from '../validator/auth.validator.js';
 import { protect } from '../../../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -12,6 +12,7 @@ router.post('/logout', protect, controller.logout);
 router.post('/logout-all', protect, controller.logoutAll);
 router.get('/profile', protect, controller.getProfile);
 router.put('/profile', protect, validate(updateProfileSchema), controller.updateProfile);
+router.put('/change-password', protect, validate(changePasswordSchema), controller.changePassword);
 router.get('/sessions', protect, controller.getSessions);
 router.delete('/sessions/:id', protect, controller.revokeSession);
 

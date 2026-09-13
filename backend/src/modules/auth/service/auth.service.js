@@ -3,6 +3,7 @@ import { ApiError } from '../../../utils/ApiError.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../../utils/TokenUtils.js';
 import { ACCOUNT_STATUS } from '../../../constants/userRoles.js';
 import useragent from 'useragent';
+import { User } from '../model/User.js';
 
 export class AuthService {
   constructor() {
@@ -180,14 +181,47 @@ export class AuthService {
   }
 
   async updateProfile(userId, updateData) {
-    const allowed = ['firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'timezone', 'language'];
+    const allowed = [
+      'firstName',
+      'lastName',
+      'phone',
+      'profilePhoto',
+      'address',
+      'city',
+      'state',
+      'country',
+      'pincode',
+      'timezone',
+      'language',
+    ];
     const filtered = {};
     Object.keys(updateData).forEach((key) => {
       if (allowed.includes(key)) filtered[key] = updateData[key];
     });
 
     const updatedUser = await this.authRepo.updateUser(userId, filtered);
+    if (!updatedUser) throw ApiError.notFound('User not found');
     return updatedUser;
+  }
+
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await User.findById(userId).select('+password');
+    if (!user || user.isDeleted) {
+      throw ApiError.notFound('User not found');
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      throw ApiError.badRequest('Current password does not match');
+    }
+
+    if (currentPassword === newPassword) {
+      throw ApiError.badRequest('New password must be different from current password');
+    }
+
+    user.password = newPassword;
+    await user.save();
+    return true;
   }
 
   async getActiveSessions(userId) {
