@@ -12,14 +12,12 @@ import {
   Package,
   Boxes,
   TrendingUp,
-  Monitor,
   LogOut,
   Bell,
   Search,
   Menu,
   X,
   Building2,
-  UserCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -52,8 +50,6 @@ export const DashboardLayout = () => {
     { label: 'Master Products', path: '/products', icon: Package },
     { label: 'Inventory Ledger', path: '/inventory', icon: Boxes },
     { label: 'Revenue Engine', path: '/revenue', icon: TrendingUp },
-    { label: 'Sessions & Security', path: '/sessions', icon: Monitor },
-    { label: 'My Profile', path: '/profile', icon: UserCircle },
   ];
 
   return (

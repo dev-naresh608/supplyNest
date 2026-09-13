@@ -75,8 +75,17 @@ export const AppRoutes = () => {
         <Route path="revenue" element={<RevenueView />} />
         <Route path="sessions" element={<SessionManagerView />} />
         <Route path="notifications" element={<NotificationsView />} />
-        <Route path="profile" element={<ProfileView />} />
       </Route>
+
+      {/* Dedicated Standalone Profile & Settings Module */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfileView />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
